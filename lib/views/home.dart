@@ -1,7 +1,7 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:sound_trends/utils/const.dart' as cons;
-import 'package:sound_trends/views/overview.dart';
+import 'package:sound_trends/views/top.dart';
 import 'package:sound_trends/views/stats.dart';
 
 class home extends StatefulWidget {
