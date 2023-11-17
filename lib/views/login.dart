@@ -129,13 +129,24 @@ class _LoginState extends State<Login> {
                                 ),
                                 backgroundColor: const Color(0xFF1EF18C),
                               ),
-                              child: const Text(
-                                'Login with Spotify',
-                                style: TextStyle(
-                                  color: Color(0xFF1E1E1E),
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16.0,
-                                ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Image.asset(
+                                    'assets/spotify.png',
+                                    width: 30,
+                                    height: 30,
+                                  ),
+                                  const SizedBox(width: 16.0),
+                                  const Text(
+                                    'Login with Spotify',
+                                    style: TextStyle(
+                                      color: Color(0xFF1E1E1E),
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16.0,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ),
