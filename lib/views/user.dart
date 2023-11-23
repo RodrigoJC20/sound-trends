@@ -7,7 +7,7 @@ import 'package:sound_trends/views/stats.dart';
 
 class user extends StatefulWidget {
   const user({super.key});
-
+  
   @override
   State<user> createState() => _userState();
 }
@@ -19,7 +19,7 @@ class _userState extends State<user> {
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
     return MaterialApp(
-
+     debugShowCheckedModeBanner: false,
       home: Scaffold(
         backgroundColor: cons.black,
         body: Center(

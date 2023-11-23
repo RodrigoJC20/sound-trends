@@ -1,3 +1,4 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:sound_trends/utils/const.dart' as cons;
 import 'package:sound_trends/views/home.dart';
@@ -17,6 +18,7 @@ class _statsState extends State<stats> {
     final size = MediaQuery.of(context).size;
     int _selectedIndex = 1;
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       home: Scaffold(
         backgroundColor: cons.black,
         body: Center(
@@ -38,10 +40,28 @@ class _statsState extends State<stats> {
                             // Acción al hacer clic 
                           },
                         ),
-                        Text(
+                        Container(
+                          alignment: Alignment.center,
+                width: size.height * 0.3,
+                height: size.height * 0.08,
+               child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                       children:<Widget>[ AutoSizeText(
                           'Stats',
+              maxLines: 1, // Número máximo de líneas antes de truncar
+              overflow: TextOverflow.ellipsis,
                           style: TextStyle(color: cons.white, fontSize: 20),
                         ),
+                    AutoSizeText(
+                      'Past 4 Weeks',
+              maxLines: 1, // Número máximo de líneas antes de truncar
+              overflow: TextOverflow.ellipsis,
+                      style: TextStyle(color: cons.gray,fontSize: 12),
+                    ),
+                        ]
+                ),
+                        ),
+
                         IconButton(
                           icon: Icon(Icons.person, color: cons.white),
                           onPressed: () {
@@ -50,10 +70,7 @@ class _statsState extends State<stats> {
                         ),
                       ],
                     ),
-                    Text(
-                      'Past 4 Weeks',
-                      style: TextStyle(color: cons.gray),
-                    ),
+
                   ],
                 ),
               ),
@@ -80,12 +97,14 @@ class _statsState extends State<stats> {
                               style: TextStyle(color: cons.green, fontSize: 30, fontWeight: FontWeight.bold),
                             ),
                           ),
-                          SizedBox(height: 10,),
+                          SizedBox(height: size.height*0.00,),
                           Padding(
                             padding: const EdgeInsets.only(left: 20.0), 
-                            child: Text(
+                            child: AutoSizeText(
+                              minFontSize: 6,
+                              maxFontSize: 1000,
                               'Total tracks streamed',
-                              style: TextStyle(color: cons.white, fontSize: 22, fontWeight: FontWeight.bold),
+                              style: TextStyle(color: cons.white, fontWeight: FontWeight.bold),
                             ),
                           ),
                         ],
@@ -108,12 +127,13 @@ class _statsState extends State<stats> {
                               style: TextStyle(color: cons.green, fontSize: 30, fontWeight: FontWeight.bold),
                             ),
                           ),
-                          SizedBox(height: 10,),
                           Padding(
                             padding: const EdgeInsets.only(left: 20.0), 
-                            child: Text(
+                            child: AutoSizeText(
+                              minFontSize: 6,
+                              maxFontSize: 1000,
                               'Total hours streamed',
-                              style: TextStyle(color: cons.white, fontSize: 22, fontWeight: FontWeight.bold),
+                              style: TextStyle(color: cons.white, fontWeight: FontWeight.bold),
                             ),
                           ),
                         ],
@@ -179,9 +199,13 @@ class _statsState extends State<stats> {
                           SizedBox(height: 10,),
                           Padding(
                             padding: const EdgeInsets.only(left: 20.0), 
-                            child: Text(
+                            child: AutoSizeText(
+                            minFontSize: 20,
+                            maxFontSize: 40,
+              maxLines: 2, // Número máximo de líneas antes de truncar
+              overflow: TextOverflow.ellipsis,
                               'Of your tracks are energic',
-                              style: TextStyle(color: cons.white, fontSize: 25, fontWeight: FontWeight.bold),
+                              style: TextStyle(color: cons.white, fontWeight: FontWeight.bold),
                             ),
                           ),
                         ],
@@ -207,9 +231,13 @@ class _statsState extends State<stats> {
                           SizedBox(height: 10,),
                           Padding(
                             padding: const EdgeInsets.only(left: 20.0), 
-                            child: Text(
+                            child: AutoSizeText(
                               'Of your tracks are danceable',
-                              style: TextStyle(color: cons.white, fontSize: 25, fontWeight: FontWeight.bold),
+                            minFontSize: 20,
+                            maxFontSize: 40,
+              maxLines: 2, // Número máximo de líneas antes de truncar
+              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(color: cons.white, fontWeight: FontWeight.bold),
                             ),
                           ),
                         ],
@@ -251,7 +279,10 @@ class _statsState extends State<stats> {
               Container(
                 width: size.width * 0.95,
                 height: size.height * 0.10,
-                child: Column(
+                alignment: Alignment.center,
+                child: 
+                SingleChildScrollView(scrollDirection: Axis.horizontal,
+                child:                 Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
                     Row(
@@ -323,6 +354,8 @@ class _statsState extends State<stats> {
                       ],
                     ),
                   ],
+                ),
+
                 ),
               ),
               SizedBox(height: size.height * 0.01),
