@@ -18,9 +18,9 @@ class _LoginState extends State<Login> {
       backgroundColor: const Color(0xFF1E1E1E),
       body: SingleChildScrollView(
         child: SizedBox(
-          height: screenSize.height, // Set a fixed height
+          height: screenSize.height,
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly, // Center and space evenly
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               // First Row - Logo
               Image.asset(
