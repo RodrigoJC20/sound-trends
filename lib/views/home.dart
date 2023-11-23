@@ -19,10 +19,13 @@ class _registroState extends State<home> {
     int _selectedIndex = 0;
     final size = MediaQuery.of(context).size;
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       home: Scaffold(
         backgroundColor: cons.black,
         body: Center(
-          child: Column(
+          child: 
+          SingleChildScrollView(
+            child:           Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Container(
@@ -169,6 +172,8 @@ class _registroState extends State<home> {
                 ),
               ),
             ],
+          ),
+
           ),
         ),
       bottomNavigationBar: BottomNavigationBar(

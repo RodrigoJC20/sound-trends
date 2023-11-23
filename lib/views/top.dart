@@ -21,7 +21,7 @@ class _topState extends State<top> {
     int _selectedIndex = 2;
     final size = MediaQuery.of(context).size;
     return MaterialApp(
-
+      debugShowCheckedModeBanner: false,
       home: Scaffold(
         backgroundColor: cons.black,
         body: Center(
