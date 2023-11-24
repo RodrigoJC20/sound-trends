@@ -5,14 +5,14 @@ import 'package:sound_trends/views/home.dart';
 import 'package:sound_trends/views/top.dart';
 import 'package:sound_trends/views/user.dart';
 
-class stats extends StatefulWidget {
-  const stats({super.key});
+class Stats extends StatefulWidget {
+  const Stats({super.key});
 
   @override
-  State<stats> createState() => _statsState();
+  State<Stats> createState() => _StatsState();
 }
 
-class _statsState extends State<stats> {
+class _StatsState extends State<Stats> {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
@@ -400,13 +400,13 @@ class _statsState extends State<stats> {
           setState(() {
             _selectedIndex = index;
             if(_selectedIndex==0){
-              Navigator.push(context, MaterialPageRoute(builder: (context) => const home()));
+              Navigator.push(context, MaterialPageRoute(builder: (context) => const Home()));
             }
             if(_selectedIndex==1){
               
             }
             if(_selectedIndex==2){
-              Navigator.push(context, MaterialPageRoute(builder: (context) => const top()));
+              Navigator.push(context, MaterialPageRoute(builder: (context) => const Top()));
             }
           });
         },

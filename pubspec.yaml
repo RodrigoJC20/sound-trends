@@ -45,6 +45,7 @@ dependencies:
   shelf_proxy: ^1.0.4
   shelf_router: ^1.1.4
   webview_flutter: ^4.4.2
+  shared_preferences: ^2.2.2
 
 dev_dependencies:
   flutter_test:
@@ -64,10 +65,6 @@ dev_dependencies:
 flutter:
   assets:
     - assets/
-    - assets/logo.png
-    - assets/logo_text.png
-    - assets/natael.jpeg
-    - assets/alien_boy.jpg
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.

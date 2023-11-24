@@ -6,16 +6,16 @@ import 'package:sound_trends/views/home.dart';
 import 'package:sound_trends/views/stats.dart';
 import 'package:sound_trends/views/user.dart';
 
-class top extends StatefulWidget {
-  const top({super.key});
+class Top extends StatefulWidget {
+  const Top({super.key});
 
   @override
-  State<top> createState() => _topState();
+  State<Top> createState() => _TopState();
 }
 
 //Icono en la aplicacion que se vea bien
 
-class _topState extends State<top> {
+class _TopState extends State<Top> {
    @override
   Widget build(BuildContext context) {
     int _selectedIndex = 2;
@@ -270,10 +270,10 @@ height: size.height*0.04),
           setState(() {
             _selectedIndex = index;
             if(_selectedIndex==0){
-              Navigator.push(context, MaterialPageRoute(builder: (context) => const home()));
+              Navigator.push(context, MaterialPageRoute(builder: (context) => const Home()));
             }
             if(_selectedIndex==1){
-              Navigator.push(context, MaterialPageRoute(builder: (context) => const stats()));
+              Navigator.push(context, MaterialPageRoute(builder: (context) => const Stats()));
             }
             if(_selectedIndex==2){                 
             }
