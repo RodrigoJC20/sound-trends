@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:sound_trends/utils/spotify_api.dart';
+import 'package:sound_trends/views/home.dart';
 
 class Login extends StatefulWidget {
   const Login({Key? key}) : super(key: key);
@@ -8,6 +10,8 @@ class Login extends StatefulWidget {
 }
 
 class _LoginState extends State<Login> {
+  Future<AccessToken>? _accessToken;
+
   @override
   Widget build(BuildContext context) {
     final screenSize = MediaQuery.of(context).size;
@@ -17,9 +21,9 @@ class _LoginState extends State<Login> {
       backgroundColor: const Color(0xFF1E1E1E),
       body: SingleChildScrollView(
         child: SizedBox(
-          height: screenSize.height, // Set a fixed height
+          height: screenSize.height,
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly, // Center and space evenly
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               // First Row - Logo
               Image.asset(
@@ -27,6 +31,7 @@ class _LoginState extends State<Login> {
                 width: 150,
                 height: 100,
               ),
+
               // Second Row - Login Information
               Padding(
                 padding: const EdgeInsets.all(25.0),
@@ -42,7 +47,7 @@ class _LoginState extends State<Login> {
                           contentPadding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 16.0),
                         ),
                       ),
-                    ),
+                    ), // User Input
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 8.0),
                       child: TextFormField(
@@ -56,7 +61,7 @@ class _LoginState extends State<Login> {
                           contentPadding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 16.0),
                         ),
                       ),
-                    ),
+                    ), // Password Input
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 8.0),
                       child: Row(
@@ -81,7 +86,7 @@ class _LoginState extends State<Login> {
                                 ),
                               ),
                             ),
-                          ),
+                          ), // Login Button
                           const SizedBox(width: 8.0), // Middle padding
                           Expanded(
                             child: ElevatedButton(
@@ -103,56 +108,25 @@ class _LoginState extends State<Login> {
                                 ),
                               ),
                             ),
-                          ),
+                          ), // Signup Button
                         ],
                       ),
-                    ),
+                    ), // Login/Signup Buttons
                     const Padding(
                       padding: EdgeInsets.symmetric(vertical: 8.0),
                       child: Text(
                         'Or',
                         style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20.0),
                       ),
-                    ),
+                    ), // Or Text
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 8.0),
                       child: Row(
                         children: [
-                          Expanded(
-                            child: ElevatedButton(
-                              onPressed: () {
-                                // Spotify Login
-                              },
-                              style: ElevatedButton.styleFrom(
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(20.0),
-                                ),
-                                backgroundColor: const Color(0xFF1EF18C),
-                              ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Image.asset(
-                                    'assets/spotify.png',
-                                    width: 30,
-                                    height: 30,
-                                  ),
-                                  const SizedBox(width: 16.0),
-                                  const Text(
-                                    'Login with Spotify',
-                                    style: TextStyle(
-                                      color: Color(0xFF1E1E1E),
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16.0,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
+                          buildSpotifyLogin()
                         ],
                       ),
-                    ),
+                    ), // Spotify Button
                   ],
                 ),
               ),
@@ -167,6 +141,45 @@ class _LoginState extends State<Login> {
           ),
         ),
       ),
+    );
+  }
+
+  Expanded buildSpotifyLogin() {
+    return Expanded(
+      child: ElevatedButton(
+        onPressed: () {
+          setState(() {
+            _accessToken = fetchAccessToken();
+          });
+
+          Navigator.push(context, MaterialPageRoute(builder: (context) => const Home()));
+        },
+        style: ElevatedButton.styleFrom(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20.0),
+          ),
+          backgroundColor: const Color(0xFF1EF18C),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Image.asset(
+              'assets/spotify.png',
+              width: 30,
+              height: 30,
+            ),
+            const SizedBox(width: 16.0),
+            const Text(
+              'Login with Spotify',
+              style: TextStyle(
+                color: Color(0xFF1E1E1E),
+                fontWeight: FontWeight.bold,
+                fontSize: 16.0,
+              ),
+            ),
+          ],
+        ),
+      )
     );
   }
 }
