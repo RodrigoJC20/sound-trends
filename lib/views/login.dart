@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sound_trends/utils/spotify_api.dart';
 import 'package:sound_trends/views/home.dart';
 
@@ -17,13 +18,11 @@ class _LoginState extends State<Login> {
     final screenSize = MediaQuery.of(context).size;
 
     return Scaffold(
-      resizeToAvoidBottomInset: false,
       backgroundColor: const Color(0xFF1E1E1E),
       body: SingleChildScrollView(
-        child: SizedBox(
-          height: screenSize.height,
+        child: Padding(
+          padding: const EdgeInsets.only(top: 75.0),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               // First Row - Logo
               Image.asset(
@@ -34,7 +33,7 @@ class _LoginState extends State<Login> {
 
               // Second Row - Login Information
               Padding(
-                padding: const EdgeInsets.all(25.0),
+                padding: const EdgeInsets.only(left: 25.0, right: 25.0, top: 75.0, bottom: 75.0),
                 child: Column(
                   children: [
                     Padding(
@@ -75,10 +74,10 @@ class _LoginState extends State<Login> {
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(20.0),
                                 ),
-                                backgroundColor: const Color(0xFF1EF18C),
+                                backgroundColor: const Color(0xFF1EF133),
                               ),
                               child: const Text(
-                                  'Login',
+                                'Login',
                                 style: TextStyle(
                                   color: Color(0xFF1E1E1E),
                                   fontWeight: FontWeight.bold,
@@ -97,7 +96,7 @@ class _LoginState extends State<Login> {
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(20.0),
                                 ),
-                                backgroundColor: const Color(0xFF1EF18C),
+                                backgroundColor: const Color(0xFF1EF133),
                               ),
                               child: const Text(
                                 'Signup',
@@ -139,7 +138,7 @@ class _LoginState extends State<Login> {
               ),
             ],
           ),
-        ),
+        )
       ),
     );
   }
@@ -148,9 +147,9 @@ class _LoginState extends State<Login> {
     return Expanded(
       child: ElevatedButton(
         onPressed: () {
-          setState(() {
-            _accessToken = fetchAccessToken();
-          });
+          // setState(() {
+          //   _accessToken = fetchAccessToken();
+          // });
 
           Navigator.push(context, MaterialPageRoute(builder: (context) => const Home()));
         },
@@ -158,7 +157,7 @@ class _LoginState extends State<Login> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20.0),
           ),
-          backgroundColor: const Color(0xFF1EF18C),
+          backgroundColor: const Color(0xFF1EF133),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,

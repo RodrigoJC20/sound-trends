@@ -11,8 +11,8 @@ import 'package:http/http.dart' as http;
 
 Future<AccessToken> fetchAccessToken() async {
   const String grantType = 'client_credentials';
-  const String clientID = '42878b630fd04e51873054b6ac37e01b';
-  const String clientSecret = '57ac5d2bfcc14ec88a5e6093594cae69';
+  const String clientID = 'YOUR-CLIENT-ID';
+  const String clientSecret = 'YOUR-CLIENT-SECRET';
 
   final response = await http.post(
     Uri.parse('https://accounts.spotify.com/api/token'),
@@ -27,8 +27,9 @@ Future<AccessToken> fetchAccessToken() async {
   );
 
   final responseJson = jsonDecode(response.body) as Map<String, dynamic>;
+  final accessToken = AccessToken.fromJson(responseJson);
 
-  return AccessToken.fromJson(responseJson);
+  return accessToken;
 }
 
 class AccessToken {

@@ -32,15 +32,19 @@ class _HomeState extends State<Home> {
         imageUrl: 'https://i.scdn.co/image/ab6761610000f178a03696716c9ee605006047fd',
       ),
       Artist(
-        name: 'Eminem',
+        name: 'Taylor Swift',
         imageUrl: 'https://i.scdn.co/image/ab6761610000f178a03696716c9ee605006047fd',
       ),
       Artist(
-        name: 'Olivia Rodrigo',
+        name: 'Taylor Swift',
         imageUrl: 'https://i.scdn.co/image/ab6761610000f178a03696716c9ee605006047fd',
       ),
       Artist(
-        name: 'Drake',
+        name: 'Taylor Swift',
+        imageUrl: 'https://i.scdn.co/image/ab6761610000f178a03696716c9ee605006047fd',
+      ),
+      Artist(
+        name: 'Taylor Swift',
         imageUrl: 'https://i.scdn.co/image/ab6761610000f178a03696716c9ee605006047fd',
       ),
     ];
@@ -72,7 +76,7 @@ class _HomeState extends State<Home> {
                         style: TextStyle(
                           fontSize: 40.0,
                           fontWeight: FontWeight.bold,
-                          color: Color.fromARGB(255, 30, 241, 139),
+                          color: Color(0xFF1EF133),
                           decoration: TextDecoration.none,
                         ),
                       ),
@@ -117,6 +121,7 @@ class _HomeState extends State<Home> {
                     ),
                     const SizedBox(height: 8.0),
                     SizedBox(
+                      height: 120.0,
                       child: ListView.builder(
                         scrollDirection: Axis.horizontal,
                         itemCount: topArtists.length,
@@ -155,7 +160,7 @@ class _HomeState extends State<Home> {
                           style: TextStyle(
                             fontSize: 28.0,
                             fontWeight: FontWeight.bold,
-                            color: Color.fromARGB(255, 30, 241, 139),
+                            color: Color(0xFF1EF133),
                           ),
                         ),
                         SizedBox(width: 8.0),
@@ -176,7 +181,7 @@ class _HomeState extends State<Home> {
                           style: TextStyle(
                             fontSize: 28.0,
                             fontWeight: FontWeight.bold,
-                            color: Color.fromARGB(255, 30, 241, 139),
+                            color: Color(0xFF1EF133),
                           ),
                         ),
                         SizedBox(width: 8.0),
@@ -197,7 +202,7 @@ class _HomeState extends State<Home> {
                           style: TextStyle(
                             fontSize: 28.0,
                             fontWeight: FontWeight.bold,
-                            color: Color.fromARGB(255, 30, 241, 139),
+                            color: Color(0xFF1EF133),
                           ),
                         ),
                         SizedBox(width: 8.0),
@@ -265,7 +270,7 @@ class _HomeState extends State<Home> {
       ),
       bottomNavigationBar: BottomNavigationBar(
         backgroundColor: const Color.fromARGB(232, 0, 0, 0),
-        selectedItemColor: const Color.fromARGB(255, 30, 241, 139),
+        selectedItemColor: const Color(0xFF1EF133),
         unselectedItemColor: const Color.fromARGB(165, 241, 239, 239),
 
         items: const [
