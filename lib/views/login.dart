@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:sound_trends/utils/spotify_api.dart';
-import 'package:sound_trends/utils/spotify_artist.dart';
+import 'package:sound_trends/spotify_api/spotify_auth.dart';
+import 'package:sound_trends/views/home.dart';
 
 class Login extends StatefulWidget {
   const Login({Key? key}) : super(key: key);
@@ -10,13 +10,10 @@ class Login extends StatefulWidget {
 }
 
 class _LoginState extends State<Login> {
-  late Future<AccessToken> _accessToken;
-  late Future<Artist> _artist;
+  bool isLoading = false;
 
   @override
   Widget build(BuildContext context) {
-    final screenSize = MediaQuery.of(context).size;
-
     return Scaffold(
       backgroundColor: const Color(0xFF1E1E1E),
       body: SingleChildScrollView(
@@ -28,96 +25,14 @@ class _LoginState extends State<Login> {
               Image.asset(
                 'assets/logo.png',
                 width: 150,
-                height: 100,
+                height: 150,
               ),
 
               // Second Row - Login Information
               Padding(
-                padding: const EdgeInsets.only(left: 25.0, right: 25.0, top: 60.0, bottom: 75.0),
+                padding: const EdgeInsets.only(left: 25.0, right: 25.0, top: 40.0, bottom: 75.0),
                 child: Column(
                   children: [
-                    // Padding(
-                    //   padding: const EdgeInsets.symmetric(vertical: 8.0),
-                    //   child: TextFormField(
-                    //     decoration: InputDecoration(
-                    //       hintText: 'Username',
-                    //       filled: true,
-                    //       border: OutlineInputBorder(borderRadius: BorderRadius.circular(20.0)),
-                    //       contentPadding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 16.0),
-                    //     ),
-                    //   ),
-                    // ), // User Input
-                    // Padding(
-                    //   padding: const EdgeInsets.symmetric(vertical: 8.0),
-                    //   child: TextFormField(
-                    //     obscureText: true,
-                    //     decoration: InputDecoration(
-                    //       hintText: 'Password',
-                    //       filled: true,
-                    //       border: OutlineInputBorder(
-                    //         borderRadius: BorderRadius.circular(20.0),
-                    //       ),
-                    //       contentPadding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 16.0),
-                    //     ),
-                    //   ),
-                    // ), // Password Input
-                    // Padding(
-                    //   padding: const EdgeInsets.symmetric(vertical: 8.0),
-                    //   child: Row(
-                    //     children: [
-                    //       Expanded(
-                    //         child: ElevatedButton(
-                    //           onPressed: () {
-                    //             // Login
-                    //           },
-                    //           style: ElevatedButton.styleFrom(
-                    //             shape: RoundedRectangleBorder(
-                    //               borderRadius: BorderRadius.circular(20.0),
-                    //             ),
-                    //             backgroundColor: const Color(0xFF1EF133),
-                    //           ),
-                    //           child: const Text(
-                    //             'Login',
-                    //             style: TextStyle(
-                    //               color: Color(0xFF1E1E1E),
-                    //               fontWeight: FontWeight.bold,
-                    //               fontSize: 16.0,
-                    //             ),
-                    //           ),
-                    //         ),
-                    //       ), // Login Button
-                    //       const SizedBox(width: 8.0), // Middle padding
-                    //       Expanded(
-                    //         child: ElevatedButton(
-                    //           onPressed: () {
-                    //             // Signup
-                    //           },
-                    //           style: ElevatedButton.styleFrom(
-                    //             shape: RoundedRectangleBorder(
-                    //               borderRadius: BorderRadius.circular(20.0),
-                    //             ),
-                    //             backgroundColor: const Color(0xFF1EF133),
-                    //           ),
-                    //           child: const Text(
-                    //             'Signup',
-                    //             style: TextStyle(
-                    //               color: Color(0xFF1E1E1E),
-                    //               fontWeight: FontWeight.bold,
-                    //               fontSize: 16.0,
-                    //             ),
-                    //           ),
-                    //         ),
-                    //       ), // Signup Button
-                    //     ],
-                    //   ),
-                    // ), // Login/Signup Buttons
-                    // const Padding(
-                    //   padding: EdgeInsets.symmetric(vertical: 8.0),
-                    //   child: Text(
-                    //     'Or',
-                    //     style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20.0),
-                    //   ),
-                    // ), // Or Text
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 10.0),
                       child: Image.asset(
@@ -130,7 +45,7 @@ class _LoginState extends State<Login> {
                       padding: const EdgeInsets.symmetric(vertical: 8.0),
                       child: Row(
                         children: [
-                          buildSpotifyLogin()
+                          buildSpotifyLoginButton()
                         ],
                       ),
                     ), // Spotify Button
@@ -151,28 +66,17 @@ class _LoginState extends State<Login> {
     );
   }
 
-  Expanded buildSpotifyLogin() {
+  Widget buildSpotifyLoginButton() {
     return Expanded(
       child: ElevatedButton(
-        onPressed: () {
-          setState(() {
-            _accessToken = fetchAccessToken();
-          });
-
-          _accessToken.then((value) => () {
-            debugPrint("Here");
-            debugPrint(value.accessToken);
-          });
-
-          // Navigator.push(context, MaterialPageRoute(builder: (context) => const Home()));
-        },
+        onPressed: isLoading ? null : () => handleLoginButtonPressed(),
         style: ElevatedButton.styleFrom(
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20.0),
           ),
           backgroundColor: const Color(0xFF1EF133),
         ),
-        child: Row(
+        child: isLoading ? const CircularProgressIndicator() : Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Image.asset(
@@ -191,7 +95,23 @@ class _LoginState extends State<Login> {
             ),
           ],
         ),
-      )
+      ),
     );
+  }
+
+  handleLoginButtonPressed() {
+    setState(() {
+      isLoading = true;
+    });
+
+    loadAccessToken().then((accessToken) {
+      Future.delayed(const Duration(milliseconds: 500), () {
+        setState(() {
+          isLoading = false;
+        });
+        debugPrint(accessToken.accessToken);
+        Navigator.push(context, MaterialPageRoute(builder: (context) => const Home()));
+      });
+    });
   }
 }

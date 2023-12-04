@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:sound_trends/views/top.dart';
 import 'package:sound_trends/views/stats.dart';
-import 'package:sound_trends/utils/spotify_song.dart';
+import 'package:sound_trends/spotify_api/spotify_song.dart';
 
-import '../utils/spotify_artist.dart';
+import '../spotify_api/spotify_artist.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key});

@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 
 class Artist {
   final String id;
@@ -37,6 +39,24 @@ class Artist {
       _ => throw const FormatException('Failed to load the artist'),
     };
   }
+}
+
+Future<Artist> getArtistByID(String accessToken, String id) async {
+  const url = 'https://api.spotify.com/v1/artists/';
+
+  final response = await http.get(
+      Uri.parse(url + id),
+      headers: <String, String>{
+        'Authorization': 'Bearer $accessToken',
+      }
+  );
+
+  final responseJson = jsonDecode(response.body) as Map<String, dynamic>;
+  final artist = Artist.fromJson(responseJson);
+
+  debugPrint(artist.name);
+
+  return artist;
 }
 
 class SpotifyArtistCard extends StatelessWidget {

@@ -1,8 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:sound_trends/spotify_api/spotify_auth.dart';
 import 'package:sound_trends/views/login.dart';
+import 'package:provider/provider.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => UserAuthProvider(),
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
