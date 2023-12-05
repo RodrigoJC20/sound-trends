@@ -27,7 +27,43 @@ class Track {
   }
 }
 
-Future<List<Track>> fetchTopTracks(String? accessToken) async {
+Future<List<Track>> getRecentlyPlayed(String? accessToken) async {
+  if (accessToken == null) {
+    return Future.error('Access token is null');
+  }
+
+  const url = "https://api.spotify.com/v1/me/player/recently-played?limit=15";
+
+  final response = await http.get(
+    Uri.parse(url),
+    headers: <String, String>{
+      'Authorization': 'Bearer $accessToken',
+    },
+  );
+
+  if (response.statusCode == 200) {
+    final Map<String, dynamic> data = json.decode(response.body);
+
+    final List<dynamic> items = data['items'];
+
+    List<Track> recentTracks = items.map((item) {
+      return Track(
+        id: item['track']['id'] ?? '',
+        name: item['track']['name'] ?? '',
+        image: item['track']['album']['images'][0]['url'] ?? '',
+        artists: (item['track']['artists'] as List<dynamic>)
+            .map((artist) => artist['name'].toString())
+            .toList(),
+      );
+    }).toList();
+
+    return recentTracks;
+  } else {
+    throw Exception('Failed to load top tracks');
+  }
+}
+
+Future<List<Track>> getTopTracks(String? accessToken) async {
   if (accessToken == null) {
     return Future.error('Access token is null');
   }

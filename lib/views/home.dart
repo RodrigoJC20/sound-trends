@@ -16,6 +16,7 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   List<Artist> topArtists = [];
   List<Track> topTracks = [];
+  List<Track> recentlyPlayed = [];
 
   @override
   void initState() {
@@ -29,7 +30,7 @@ class _HomeState extends State<Home> {
     final String? accessToken = userAuthProvider.getAccessToken();
 
     if (topDataProvider.topArtists.isEmpty) {
-      fetchTopArtists(accessToken).then((artists) {
+      getTopArtists(accessToken).then((artists) {
         topDataProvider.updateTopArtists(artists);
         setState(() {
           topArtists = artists;
@@ -37,13 +38,19 @@ class _HomeState extends State<Home> {
       });
     }
     if (topDataProvider.topTracks.isEmpty) {
-      fetchTopTracks(accessToken).then((tracks) {
+      getTopTracks(accessToken).then((tracks) {
         topDataProvider.updateTopTracks(tracks);
         setState(() {
           topTracks = tracks;
         });
       });
     }
+
+    getRecentlyPlayed(accessToken).then((tracks) {
+      setState(() {
+        recentlyPlayed = tracks;
+      });
+    });
   }
 
   @override
@@ -185,12 +192,12 @@ class _HomeState extends State<Home> {
                   ],
                 ),
               ),
-              const Padding(
-                padding: EdgeInsets.all(10.0),
+              Padding(
+                padding: const EdgeInsets.all(10.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    const Text(
                       "Recently Played",
                       style: TextStyle(
                         fontSize: 18.0,
@@ -198,36 +205,18 @@ class _HomeState extends State<Home> {
                         color: Colors.white,
                       ),
                     ),
-                    SizedBox(height: 8.0),
-                    SpotifyTrackCard(
-                      songName: "History Song 1",
-                      authors: ["Author 1"],
-                      imageUrl: "https://i.scdn.co/image/ab6761610000f178a03696716c9ee605006047fd",
-                    ),
-                    SizedBox(height: 8.0),
-                    SpotifyTrackCard(
-                      songName: "History Song 1",
-                      authors: ["Author 1"],
-                      imageUrl: "https://i.scdn.co/image/ab6761610000f178a03696716c9ee605006047fd",
-                    ),
-                    SizedBox(height: 8.0),
-                    SpotifyTrackCard(
-                      songName: "History Song 1",
-                      authors: ["Author 1"],
-                      imageUrl: "https://i.scdn.co/image/ab6761610000f178a03696716c9ee605006047fd",
-                    ),
-                    SizedBox(height: 8.0),
-                    SpotifyTrackCard(
-                      songName: "History Song 1",
-                      authors: ["Author 1"],
-                      imageUrl: "https://i.scdn.co/image/ab6761610000f178a03696716c9ee605006047fd",
-                    ),
-                    SizedBox(height: 8.0),
-                    SpotifyTrackCard(
-                      songName: "History Song 1",
-                      authors: ["Author 1"],
-                      imageUrl: "https://i.scdn.co/image/ab6761610000f178a03696716c9ee605006047fd",
-                    ),
+                    const SizedBox(height: 8.0),
+                    for (var track in recentlyPlayed)
+                      Column(
+                        children: [
+                          SpotifyTrackCard(
+                            songName: track.name,
+                            authors: track.artists,
+                            imageUrl: track.image,
+                          ),
+                          const SizedBox(height: 8.0),
+                        ],
+                      ),
                   ],
                 ),
               ), // History
@@ -267,5 +256,15 @@ class _HomeState extends State<Home> {
         },
       ),
     );
+
+    List<SpotifyTrackCard> buildRecentlyPlayedCards(List<Track> recentlyPlayed) {
+      return recentlyPlayed.map((track) {
+        return SpotifyTrackCard(
+          songName: track.name,
+          authors: track.artists,
+          imageUrl: track.image,
+        );
+      }).toList();
+    }
   }
 }

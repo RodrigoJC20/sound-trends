@@ -89,7 +89,7 @@ Future<UserAuth> fetchAccessToken(code) async {
   final preferences = await SharedPreferences.getInstance();
   final String? codeVerifier = preferences.getString('codeVerifier');
 
-  const String clientId = '42878b630fd04e51873054b6ac37e01b';
+  const String clientId = 'client-id';
   const String redirectUri = 'com.example.soundtrends://login/oauth';
 
   if (codeVerifier != null) {

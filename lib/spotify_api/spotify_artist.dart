@@ -31,7 +31,7 @@ class Artist {
   }
 }
 
-Future<List<Artist>> fetchTopArtists(String? accessToken) async {
+Future<List<Artist>> getTopArtists(String? accessToken) async {
   if (accessToken == null) {
     return Future.error('Access token is null');
   }
