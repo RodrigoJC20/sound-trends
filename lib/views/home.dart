@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:sound_trends/views/top.dart';
 import 'package:sound_trends/views/stats.dart';
-import 'package:sound_trends/spotify_api/spotify_song.dart';
-
+import 'package:sound_trends/spotify_api/spotify_track.dart';
 import '../spotify_api/spotify_artist.dart';
+import '../utils/providers.dart';
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -12,42 +13,42 @@ class Home extends StatefulWidget {
   State<Home> createState() => _HomeState();
 }
 
-class Artist {
-  final String name;
-  final String imageUrl;
-
-  Artist({required this.name, required this.imageUrl});
-}
-
 class _HomeState extends State<Home> {
+  List<Artist> topArtists = [];
+  List<Track> topTracks = [];
+
+  @override
+  void initState() {
+    super.initState();
+    final topDataProvider = Provider.of<TopDataProvider>(context, listen: false);
+    final userAuthProvider = Provider.of<UserAuthProvider>(context, listen: false);
+
+    topArtists = topDataProvider.topArtists;
+    topTracks = topDataProvider.topTracks;
+
+    final String? accessToken = userAuthProvider.getAccessToken();
+
+    if (topDataProvider.topArtists.isEmpty) {
+      fetchTopArtists(accessToken).then((artists) {
+        topDataProvider.updateTopArtists(artists);
+        setState(() {
+          topArtists = artists;
+        });
+      });
+    }
+    if (topDataProvider.topTracks.isEmpty) {
+      fetchTopTracks(accessToken).then((tracks) {
+        topDataProvider.updateTopTracks(tracks);
+        setState(() {
+          topTracks = tracks;
+        });
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final screenSize = MediaQuery.of(context).size;
     int selectedTab = 0;
-
-    List<Artist> topArtists = [
-      Artist(
-        name: 'Taylor Swift',
-        imageUrl: 'https://i.scdn.co/image/ab6761610000f178a03696716c9ee605006047fd',
-      ),
-      Artist(
-        name: 'Taylor Swift',
-        imageUrl: 'https://i.scdn.co/image/ab6761610000f178a03696716c9ee605006047fd',
-      ),
-      Artist(
-        name: 'Taylor Swift',
-        imageUrl: 'https://i.scdn.co/image/ab6761610000f178a03696716c9ee605006047fd',
-      ),
-      Artist(
-        name: 'Taylor Swift',
-        imageUrl: 'https://i.scdn.co/image/ab6761610000f178a03696716c9ee605006047fd',
-      ),
-      Artist(
-        name: 'Taylor Swift',
-        imageUrl: 'https://i.scdn.co/image/ab6761610000f178a03696716c9ee605006047fd',
-      ),
-    ];
 
     return Scaffold(
       backgroundColor: const Color.fromARGB(232, 0, 0, 0),
@@ -98,7 +99,7 @@ class _HomeState extends State<Home> {
                       ),
                     ),
                     SizedBox(height: 8.0),
-                    SpotifySongCard(
+                    SpotifyTrackCard(
                       songName: "Song Name",
                       authors: ["Author 1", "Author 2"],
                       imageUrl: "https://i.scdn.co/image/ab6761610000f178a03696716c9ee605006047fd",
@@ -130,7 +131,7 @@ class _HomeState extends State<Home> {
                             padding: const EdgeInsets.only(right: 15.0),
                             child: SpotifyArtistCard(
                               artistName: topArtists[index].name,
-                              imageUrl: topArtists[index].imageUrl,
+                              imageUrl: topArtists[index].image,
                             ),
                           );
                         },
@@ -138,13 +139,13 @@ class _HomeState extends State<Home> {
                     ),
                   ],
                 ),
-              ),
-              const Padding(
-                padding: EdgeInsets.all(10.0),
+              ), // Top Artists
+              Padding(
+                padding: const EdgeInsets.all(10.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    const Text(
                       "Your Top Songs",
                       style: TextStyle(
                         fontSize: 18.0,
@@ -152,69 +153,35 @@ class _HomeState extends State<Home> {
                         color: Colors.white,
                       ),
                     ),
-                    SizedBox(height: 8.0),
-                    Row(
-                      children: [
-                        Text(
-                          '1.',
-                          style: TextStyle(
-                            fontSize: 28.0,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF1EF133),
-                          ),
+                    const SizedBox(height: 8.0),
+                    ...topTracks.asMap().entries.map((entry) {
+                      final index = entry.key + 1;
+                      final track = entry.value;
+
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 8.0),
+                        child: Row(
+                          children: [
+                            Text(
+                              '$index.',
+                              style: const TextStyle(
+                                fontSize: 28.0,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF1EF133),
+                              ),
+                            ),
+                            const SizedBox(width: 8.0),
+                            Expanded(
+                              child: SpotifyTrackCard(
+                                songName: track.name,
+                                authors: track.artists,
+                                imageUrl: track.image,
+                              ),
+                            ),
+                          ],
                         ),
-                        SizedBox(width: 8.0),
-                        Expanded(
-                          child: SpotifySongCard(
-                            songName: "Song 1",
-                            authors: ["Author 2"],
-                            imageUrl: "https://i.scdn.co/image/ab6761610000f178a03696716c9ee605006047fd",
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 8.0),
-                    Row(
-                      children: [
-                        Text(
-                          '2.',
-                          style: TextStyle(
-                            fontSize: 28.0,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF1EF133),
-                          ),
-                        ),
-                        SizedBox(width: 8.0),
-                        Expanded(
-                          child: SpotifySongCard(
-                            songName: "Song 1",
-                            authors: ["Author 2"],
-                            imageUrl: "https://i.scdn.co/image/ab6761610000f178a03696716c9ee605006047fd",
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 8.0),
-                    Row(
-                      children: [
-                        Text(
-                          '3.',
-                          style: TextStyle(
-                            fontSize: 28.0,
-                            fontWeight: FontWeight.bold,
-                            color: Color(0xFF1EF133),
-                          ),
-                        ),
-                        SizedBox(width: 8.0),
-                        Expanded(
-                          child: SpotifySongCard(
-                            songName: "Song 1",
-                            authors: ["Author 2"],
-                            imageUrl: "https://i.scdn.co/image/ab6761610000f178a03696716c9ee605006047fd",
-                          ),
-                        ),
-                      ],
-                    ),
+                      );
+                    }),
                   ],
                 ),
               ),
@@ -232,31 +199,31 @@ class _HomeState extends State<Home> {
                       ),
                     ),
                     SizedBox(height: 8.0),
-                    SpotifySongCard(
+                    SpotifyTrackCard(
                       songName: "History Song 1",
                       authors: ["Author 1"],
                       imageUrl: "https://i.scdn.co/image/ab6761610000f178a03696716c9ee605006047fd",
                     ),
                     SizedBox(height: 8.0),
-                    SpotifySongCard(
+                    SpotifyTrackCard(
                       songName: "History Song 1",
                       authors: ["Author 1"],
                       imageUrl: "https://i.scdn.co/image/ab6761610000f178a03696716c9ee605006047fd",
                     ),
                     SizedBox(height: 8.0),
-                    SpotifySongCard(
+                    SpotifyTrackCard(
                       songName: "History Song 1",
                       authors: ["Author 1"],
                       imageUrl: "https://i.scdn.co/image/ab6761610000f178a03696716c9ee605006047fd",
                     ),
                     SizedBox(height: 8.0),
-                    SpotifySongCard(
+                    SpotifyTrackCard(
                       songName: "History Song 1",
                       authors: ["Author 1"],
                       imageUrl: "https://i.scdn.co/image/ab6761610000f178a03696716c9ee605006047fd",
                     ),
                     SizedBox(height: 8.0),
-                    SpotifySongCard(
+                    SpotifyTrackCard(
                       songName: "History Song 1",
                       authors: ["Author 1"],
                       imageUrl: "https://i.scdn.co/image/ab6761610000f178a03696716c9ee605006047fd",

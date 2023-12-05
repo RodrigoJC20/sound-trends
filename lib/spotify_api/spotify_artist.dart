@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:crypto/crypto.dart';
 import 'package:http/http.dart' as http;
 
 class Artist {
@@ -21,43 +20,44 @@ class Artist {
   });
 
   factory Artist.fromJson(Map<String, dynamic> json) {
-    return switch (json) {
-      {
-      'id': String id,
-      'name': String name,
-      'popularity': int popularity,
-      'image': String image,
-      'followers': int followers,
-      'genres': List<String> genres
-      } => Artist(
-          id: id,
-          name: name,
-          popularity: popularity,
-          image: image,
-          followers: followers,
-          genres: genres
-      ),
-      _ => throw const FormatException('Failed to load the artist'),
-    };
+    return Artist(
+      id: json['id'],
+      name: json['name'],
+      popularity: json['popularity'],
+      image: json['images'][0]['url'],
+      followers: json['followers']['total'],
+      genres: List<String>.from(json['genres']),
+    );
   }
 }
 
-Future<Artist> getArtistByID(String accessToken, String id) async {
-  const url = 'https://api.spotify.com/v1/artists/';
+Future<List<Artist>> fetchTopArtists(String? accessToken) async {
+  if (accessToken == null) {
+    return Future.error('Access token is null');
+  }
+
+  const url = "https://api.spotify.com/v1/me/top/artists?limit=10";
 
   final response = await http.get(
-      Uri.parse(url + id),
-      headers: <String, String>{
-        'Authorization': 'Bearer $accessToken',
-      }
+    Uri.parse(url),
+    headers: <String, String>{
+      'Authorization': 'Bearer $accessToken',
+    },
   );
 
-  final responseJson = jsonDecode(response.body) as Map<String, dynamic>;
-  final artist = Artist.fromJson(responseJson);
+  if (response.statusCode == 200) {
+    final Map<String, dynamic> data = json.decode(response.body);
 
-  debugPrint(artist.name);
+    final List<dynamic> items = data['items'];
 
-  return artist;
+    List<Artist> artists = items.map((item) {
+      return Artist.fromJson(item);
+    }).toList();
+
+    return artists;
+  } else {
+    throw Exception('Failed to load top artists');
+  }
 }
 
 class SpotifyArtistCard extends StatelessWidget {

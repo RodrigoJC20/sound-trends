@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sound_trends/spotify_api/spotify_auth.dart';
-
+import '../utils/providers.dart';
 import '../views/home.dart';
 
 class SpotifyRedirectView extends StatefulWidget {
@@ -22,6 +22,7 @@ class _SpotifyRedirectViewState extends State<SpotifyRedirectView> {
   void initState() {
     super.initState();
     final userAuthProvider = Provider.of<UserAuthProvider>(context, listen: false);
+
     String code = extractAuthCode(widget.query);
 
     fetchAccessToken(code).then((userAuth) {

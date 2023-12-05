@@ -3,7 +3,6 @@ import 'dart:math';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
-import 'package:flutter/material.dart';
 import 'package:pkce/pkce.dart';
 
 class UserAuth {
@@ -156,7 +155,7 @@ Future<UserAuth?> loadUserAuth() async {
 Future<UserAuth> refreshNewToken(refreshToken) async {
   final preferences = await SharedPreferences.getInstance();
 
-  const String clientId = '42878b630fd04e51873054b6ac37e01b';
+  const String clientId = 'client-id';
 
   final response = await http.post(
     Uri.parse('https://accounts.spotify.com/api/token'),
@@ -182,16 +181,7 @@ Future<UserAuth> refreshNewToken(refreshToken) async {
   return userAuth;
 }
 
-class UserAuthProvider extends ChangeNotifier {
-  UserAuth? _userAuth;
 
-  UserAuth? get userAuth => _userAuth;
-
-  void setUserAuth(UserAuth userAuth) {
-    _userAuth = userAuth;
-    notifyListeners();
-  }
-}
 
 bool isTokenValid(DateTime requestedAt, int expiresIn) {
   final remainingTime = requestedAt.add(Duration(seconds: expiresIn)).difference(DateTime.now());

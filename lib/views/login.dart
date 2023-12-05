@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:sound_trends/spotify_api/spotify_auth.dart';
 import 'package:sound_trends/views/home.dart';
 import 'dart:async';
+import '../utils/providers.dart';
 
 class Login extends StatefulWidget {
   const Login({Key? key}) : super(key: key);
@@ -113,8 +114,7 @@ class _LoginState extends State<Login> {
       setState(() {
         isLoading = false;
       });
-      debugPrint("From provider");
-      debugPrint(storedUserAuth.accessToken);
+
       Navigator.push(context, MaterialPageRoute(builder: (context) => const Home()));
     } else {
       loadUserAuth().then((userAuth) async {
@@ -124,12 +124,14 @@ class _LoginState extends State<Login> {
             setState(() {
               isLoading = false;
             });
-            debugPrint("From shared preferences");
-            debugPrint(userAuth.accessToken);
+
             Navigator.push(context, MaterialPageRoute(builder: (context) => const Home()));
           });
         } else {
           await authUser();
+          setState(() {
+            isLoading = false;
+          });
         }
       });
     }
