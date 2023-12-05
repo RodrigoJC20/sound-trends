@@ -3,7 +3,6 @@ import 'package:provider/provider.dart';
 import 'package:sound_trends/spotify_api/spotify_auth.dart';
 import 'package:sound_trends/views/home.dart';
 import 'dart:async';
-import 'package:url_launcher/url_launcher.dart';
 
 class Login extends StatefulWidget {
   const Login({Key? key}) : super(key: key);
@@ -107,35 +106,32 @@ class _LoginState extends State<Login> {
       isLoading = true;
     });
 
-    await authUser();
+    final userAuthProvider = Provider.of<UserAuthProvider>(context, listen: false);
+    final storedUserAuth = userAuthProvider.userAuth;
 
-    setState(() {
-      isLoading = false;
-    });
-
-    // final accessTokenProvider = Provider.of<UserAuthProvider>(context, listen: false);
-    // final storedAccessToken = accessTokenProvider.accessToken;
-    //
-    // if (storedAccessToken != null && isTokenValid(storedAccessToken)) {
-    //   setState(() {
-    //     isLoading = false;
-    //   });
-    //   debugPrint("From provider");
-    //   debugPrint(storedAccessToken.accessToken);
-    //   Navigator.push(context, MaterialPageRoute(builder: (context) => const Home()));
-    // } else {
-    //   loadAccessToken().then((accessToken) {
-    //     accessTokenProvider.setAccessToken(accessToken);
-    //
-    //     Future.delayed(const Duration(milliseconds: 500), () {
-    //       setState(() {
-    //         isLoading = false;
-    //       });
-    //       debugPrint("From shared preferences");
-    //       debugPrint(accessToken.accessToken);
-    //       Navigator.push(context, MaterialPageRoute(builder: (context) => const Home()));
-    //     });
-    //   });
-    // }
+    if (storedUserAuth != null) {
+      setState(() {
+        isLoading = false;
+      });
+      debugPrint("From provider");
+      debugPrint(storedUserAuth.accessToken);
+      Navigator.push(context, MaterialPageRoute(builder: (context) => const Home()));
+    } else {
+      loadUserAuth().then((userAuth) async {
+        if (userAuth != null) {
+          userAuthProvider.setUserAuth(userAuth);
+          Future.delayed(const Duration(milliseconds: 500), () {
+            setState(() {
+              isLoading = false;
+            });
+            debugPrint("From shared preferences");
+            debugPrint(userAuth.accessToken);
+            Navigator.push(context, MaterialPageRoute(builder: (context) => const Home()));
+          });
+        } else {
+          await authUser();
+        }
+      });
+    }
   }
 }

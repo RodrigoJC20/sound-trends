@@ -53,7 +53,6 @@ String generateRandomString(int length) {
   return values.map((x) => possible[x % possible.length]).join();
 }
 
-// TODO: User Authentication
 Future<void> authUser() async {
   final pkcePair  = PkcePair.generate(length: 64);
   final codeVerifier = pkcePair.codeVerifier;
@@ -87,7 +86,6 @@ Future<void> authUser() async {
   }
 }
 
-// TODO: Request Access Token
 Future<UserAuth> fetchAccessToken(code) async {
   final preferences = await SharedPreferences.getInstance();
   final String? codeVerifier = preferences.getString('codeVerifier');
@@ -116,7 +114,7 @@ Future<UserAuth> fetchAccessToken(code) async {
     preferences.setString('accessToken', userAuth.accessToken);
     preferences.setString('scope', userAuth.scope);
     preferences.setInt('expiresIn', userAuth.expiresIn);
-    preferences.setString('accessToken', userAuth.refreshToken);
+    preferences.setString('refreshToken', userAuth.refreshToken);
     preferences.setString('requestedAt', userAuth.requestedAt.toIso8601String());
 
     return userAuth;
@@ -125,22 +123,79 @@ Future<UserAuth> fetchAccessToken(code) async {
   }
 }
 
+Future<UserAuth?> loadUserAuth() async {
+  final preferences = await SharedPreferences.getInstance();
+
+  final String? accessToken = preferences.getString('accessToken');
+  final String? scope = preferences.getString('scope');
+  final String? requestedAt = preferences.getString('requestedAt');
+  final String? refreshToken = preferences.getString('refreshToken');
+  final int? expireTime = preferences.getInt('expiresIn');
+
+  if (accessToken != null && requestedAt != null && expireTime != null && scope != null && refreshToken != null) {
+    final DateTime storedTokenCreatedAt = DateTime.parse(requestedAt);
+
+    if (!isTokenValid(storedTokenCreatedAt, expireTime)) {
+      return refreshNewToken(refreshToken);
+    }
+
+    return UserAuth(
+        accessToken: accessToken,
+        tokenType: 'Bearer',
+        scope: scope,
+        expiresIn: expireTime,
+        refreshToken: refreshToken,
+        requestedAt: storedTokenCreatedAt
+    );
+  }
+
+  return null;
+}
+
 // TODO: Refresh Access Token
+Future<UserAuth> refreshNewToken(refreshToken) async {
+  final preferences = await SharedPreferences.getInstance();
+
+  const String clientId = '42878b630fd04e51873054b6ac37e01b';
+
+  final response = await http.post(
+    Uri.parse('https://accounts.spotify.com/api/token'),
+    headers: <String, String>{
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body: {
+      'grant_type': 'refresh_token',
+      'refresh_token': refreshToken,
+      'client_id': clientId,
+    },
+  );
+
+  final responseJson = jsonDecode(response.body) as Map<String, dynamic>;
+  final userAuth = UserAuth.fromJson(responseJson);
+
+  preferences.setString('accessToken', userAuth.accessToken);
+  preferences.setString('scope', userAuth.scope);
+  preferences.setInt('expiresIn', userAuth.expiresIn);
+  preferences.setString('accessToken', userAuth.refreshToken);
+  preferences.setString('requestedAt', userAuth.requestedAt.toIso8601String());
+
+  return userAuth;
+}
 
 class UserAuthProvider extends ChangeNotifier {
   UserAuth? _userAuth;
 
   UserAuth? get userAuth => _userAuth;
 
-  void setAccessToken(UserAuth userAuth) {
+  void setUserAuth(UserAuth userAuth) {
     _userAuth = userAuth;
     notifyListeners();
   }
 }
 
-bool isTokenValid(UserAuth accessToken) {
-  final remainingTime = accessToken.requestedAt.add(Duration(seconds: accessToken.expiresIn)).difference(DateTime.now());
-  return remainingTime.inSeconds > 300; // 300 seconds = 5 minutes
+bool isTokenValid(DateTime requestedAt, int expiresIn) {
+  final remainingTime = requestedAt.add(Duration(seconds: expiresIn)).difference(DateTime.now());
+  return remainingTime.inSeconds > 300; // 600 seconds = 10 minutes
 }
 
 
