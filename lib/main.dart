@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:sound_trends/spotify_api/spotify_auth.dart';
-import 'package:sound_trends/views/home.dart';
 import 'package:sound_trends/views/login.dart';
 import 'package:provider/provider.dart';
 import 'package:sound_trends/spotify_api/spotify_redirect.dart';
@@ -29,7 +28,6 @@ class MyApp extends StatelessWidget {
       ),
       home: const Login(),
       onGenerateRoute: (settings) {
-        debugPrint('Current Route : ${settings.name}');
         Uri uri = Uri.parse(settings.name.toString());
         switch(uri.path) {
           case SpotifyRedirectView.routeName:
@@ -38,7 +36,6 @@ class MyApp extends StatelessWidget {
               return MaterialPageRoute(builder: (context) => SpotifyRedirectView(query: query,));
             }
         }
-
         switch(settings.name) {
           default:
             return MaterialPageRoute(builder: (context) => const Login());

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:sound_trends/views/home.dart';
+import 'package:sound_trends/spotify_api/spotify_auth.dart';
 
 class SpotifyRedirectView extends StatefulWidget {
   static const name = 'SpotifyRedirectView';
@@ -20,8 +20,14 @@ class _SpotifyRedirectViewState extends State<SpotifyRedirectView> {
     super.initState();
     String code = extractAuthCode(widget.query);
     // TODO: Request the access token
+    fetchAccessToken(code).then((userAuth) => () {
+      debugPrint("We did it! :D");
+    }).onError((error, stackTrace) => () {
+      debugPrint("We didnt do it! D:");
+    });
+    debugPrint("We did it! :D1");
     // TODO: Save the relevant information
-    debugPrint(code);
+
     //Navigator.push(context, MaterialPageRoute(builder: (context) => const Home()));
   }
 

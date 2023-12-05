@@ -1,10 +1,10 @@
 import 'dart:convert';
 import 'dart:math';
-import 'package:crypto/crypto.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/material.dart';
+import 'package:pkce/pkce.dart';
 
 class UserAuth {
   final String accessToken;
@@ -53,24 +53,13 @@ String generateRandomString(int length) {
   return values.map((x) => possible[x % possible.length]).join();
 }
 
-List<int> shaCustom256(String plain) {
-  List<int> data = utf8.encode(plain);
-  Digest digest = sha256.convert(data);
-  return digest.bytes;
-}
-
-String base64encode(List<int> input) {
-  String base64String = base64Url.encode(input);
-  return base64String.replaceAll('-', '+').replaceAll('_', '/');
-}
-
 // TODO: User Authentication
 Future<void> authUser() async {
-  final codeVerifier = generateRandomString(64);
-  final hashed = shaCustom256(codeVerifier);
-  final codeChallenge = base64encode(hashed);
+  final pkcePair  = PkcePair.generate(length: 64);
+  final codeVerifier = pkcePair.codeVerifier;
+  final codeChallenge = pkcePair.codeChallenge;
 
-  const String clientId = 'client-id';
+  const String clientId = '42878b630fd04e51873054b6ac37e01b';
   const String redirectUri = 'com.example.soundtrends://login/oauth';
 
   const String scope = 'user-top-read user-read-recently-played user-read-private user-read-currently-playing';
@@ -99,65 +88,44 @@ Future<void> authUser() async {
 }
 
 // TODO: Request Access Token
-// Future<UserAuth> fetchAccessToken() async {
-//
-// }
+Future<UserAuth> fetchAccessToken(code) async {
+  final preferences = await SharedPreferences.getInstance();
+  final String? codeVerifier = preferences.getString('codeVerifier');
+
+  const String clientId = '42878b630fd04e51873054b6ac37e01b';
+  const String redirectUri = 'com.example.soundtrends://login/oauth';
+
+  if (codeVerifier != null) {
+    final response = await http.post(
+      Uri.parse('https://accounts.spotify.com/api/token'),
+      headers: <String, String>{
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: {
+        'client_id': clientId,
+        'grant_type': 'authorization_code',
+        'code': code,
+        'redirect_uri': redirectUri,
+        'code_verifier': codeVerifier,
+      },
+    );
+
+    final responseJson = jsonDecode(response.body) as Map<String, dynamic>;
+    final userAuth = UserAuth.fromJson(responseJson);
+
+    preferences.setString('accessToken', userAuth.accessToken);
+    preferences.setString('scope', userAuth.scope);
+    preferences.setInt('expiresIn', userAuth.expiresIn);
+    preferences.setString('accessToken', userAuth.refreshToken);
+    preferences.setString('requestedAt', userAuth.requestedAt.toIso8601String());
+
+    return userAuth;
+  } else {
+    return Future.error('Code verifier is null. Unable to fetch access token.');
+  }
+}
 
 // TODO: Refresh Access Token
-
-// Future<UserAuth> loadAccessToken() async {
-//   final preferences = await SharedPreferences.getInstance();
-//
-//   final String? storedAccessToken = preferences.getString('accessToken');
-//   final String? storedTokenCreationTime = preferences.getString('tokenCreatedAt');
-//   final int? storedExpireTime = preferences.getInt('expireTime');
-//
-//   if (storedAccessToken != null && storedTokenCreationTime != null && storedExpireTime != null) {
-//     final DateTime storedTokenCreatedAt = DateTime.parse(storedTokenCreationTime);
-//
-//     final token = UserAuth(
-//       accessToken: storedAccessToken,
-//       tokenType: 'Bearer',
-//       expireTime: storedExpireTime,
-//       createdAt: storedTokenCreatedAt,
-//     );
-//
-//     if (isTokenValid(token)) {
-//       return token;
-//     }
-//   }
-//
-//   final accessToken = await fetchAccessToken();
-//
-//   preferences.setString('accessToken', accessToken.accessToken);
-//   preferences.setInt('expireTime', accessToken.expireTime);
-//   preferences.setString('tokenCreatedAt', accessToken.createdAt.toIso8601String());
-//
-//   return accessToken;
-// }
-//
-// Future<UserAuth> fetchAccessToken() async {
-//   const String grantType = 'client_credentials';
-//   const String clientID = 'client-id';
-//   const String clientSecret = 'client-secret';
-//
-//   final response = await http.post(
-//     Uri.parse('https://accounts.spotify.com/api/token'),
-//     headers: <String, String>{
-//       'Content-Type': 'application/x-www-form-urlencoded',
-//     },
-//     body: {
-//       'grant_type': grantType,
-//       'client_id': clientID,
-//       'client_secret': clientSecret,
-//     },
-//   );
-//
-//   final responseJson = jsonDecode(response.body) as Map<String, dynamic>;
-//   final accessToken = UserAuth.fromJson(responseJson);
-//
-//   return accessToken;
-// }
 
 class UserAuthProvider extends ChangeNotifier {
   UserAuth? _userAuth;
