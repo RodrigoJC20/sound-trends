@@ -1,6 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:sound_trends/views/top.dart';
+import 'package:sound_trends/views/recommendations.dart';
 import 'package:sound_trends/views/stats.dart';
 import 'package:sound_trends/spotify_api/spotify_track.dart';
 import '../spotify_api/spotify_artist.dart';
@@ -17,6 +19,7 @@ class _HomeState extends State<Home> {
   List<Artist> topArtists = [];
   List<Track> topTracks = [];
   List<Track> recentlyPlayed = [];
+  PlayingTrack track = const PlayingTrack(id: 'id', name: 'name', image: 'image', artists: [], isPlaying: false);
 
   @override
   void initState() {
@@ -30,7 +33,7 @@ class _HomeState extends State<Home> {
     final String? accessToken = userAuthProvider.getAccessToken();
 
     if (topDataProvider.topArtists.isEmpty) {
-      getTopArtists(accessToken).then((artists) {
+      getTopArtists(accessToken, 8).then((artists) {
         topDataProvider.updateTopArtists(artists);
         setState(() {
           topArtists = artists;
@@ -38,7 +41,7 @@ class _HomeState extends State<Home> {
       });
     }
     if (topDataProvider.topTracks.isEmpty) {
-      getTopTracks(accessToken).then((tracks) {
+      getTopTracks(accessToken, 5).then((tracks) {
         topDataProvider.updateTopTracks(tracks);
         setState(() {
           topTracks = tracks;
@@ -51,6 +54,22 @@ class _HomeState extends State<Home> {
         recentlyPlayed = tracks;
       });
     });
+
+    void updateCurrentlyPlaying() async {
+      final trackResult = await getCurrentPlaying(accessToken);
+      PlayingTrack newTrack = trackResult;
+      setState(() {
+        track = newTrack;
+        if (track.isPlaying) debugPrint(track.name);
+      });
+    }
+
+    Timer.periodic(const Duration(seconds: 1), (timer) {
+      updateCurrentlyPlaying();
+    });
+
+    // Initial call to updateCurrentlyPlaying
+    updateCurrentlyPlaying();
   }
 
   @override
@@ -92,12 +111,12 @@ class _HomeState extends State<Home> {
                   ),
                 ),
               ), // Welcome User text
-              const Padding(
-                padding: EdgeInsets.all(10.0),
+              track.isPlaying ? Padding(
+                padding: const EdgeInsets.all(10.0),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
+                    const Text(
                       "Currently playing...",
                       style: TextStyle(
                         fontSize: 18.0,
@@ -105,15 +124,15 @@ class _HomeState extends State<Home> {
                         color: Colors.white,
                       ),
                     ),
-                    SizedBox(height: 8.0),
+                    const SizedBox(height: 8.0),
                     SpotifyTrackCard(
-                      songName: "Song Name",
-                      authors: ["Author 1", "Author 2"],
-                      imageUrl: "https://i.scdn.co/image/ab6761610000f178a03696716c9ee605006047fd",
+                      songName: track.name,
+                      authors: track.artists,
+                      imageUrl: track.image,
                     ),
                   ],
                 ),
-              ), // Last Song Played
+              ) : const SizedBox.shrink(), // CurrentPlaying
               Padding(
                 padding: const EdgeInsets.all(10.0),
                 child: Column(
@@ -240,7 +259,7 @@ class _HomeState extends State<Home> {
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.trending_up),
-            label: 'Top',
+            label: 'Discover',
           ),
         ],
         currentIndex: selectedTab,
@@ -250,7 +269,7 @@ class _HomeState extends State<Home> {
             if(selectedTab == 1){
               Navigator.push(context, MaterialPageRoute(builder: (context) => const Stats()));
             } else if(selectedTab == 2){
-              Navigator.push(context, MaterialPageRoute(builder: (context) => const Top()));
+              Navigator.push(context, MaterialPageRoute(builder: (context) => const Recommendations()));
             }
           });
         },

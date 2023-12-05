@@ -1,9 +1,10 @@
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
-import 'package:sound_trends/utils/const.dart' as cons;
-import 'package:sound_trends/views/home.dart';
-import 'package:sound_trends/views/top.dart';
-import 'package:sound_trends/views/user.dart';
+import 'package:provider/provider.dart';
+import 'package:sound_trends/views/recommendations.dart';
+import '../spotify_api/spotify_artist.dart';
+import '../spotify_api/spotify_track.dart';
+import '../utils/providers.dart';
+import 'home.dart';
 
 class Stats extends StatefulWidget {
   const Stats({super.key});
@@ -13,405 +14,357 @@ class Stats extends StatefulWidget {
 }
 
 class _StatsState extends State<Stats> {
+  List<Artist> topArtists = [];
+  List<Track> topTracks = [];
+  bool isReady = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final userAuthProvider = Provider.of<UserAuthProvider>(context, listen: false);
+    final String? accessToken = userAuthProvider.getAccessToken();
+
+    getTopArtists(accessToken, 30).then((artists) {
+      setState(() {
+        topArtists = artists;
+      });
+      getTopTracks(accessToken, 30).then((tracks) {
+        setState(() {
+          topTracks = tracks;
+          isReady = true;
+        });
+      });
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.of(context).size;
-    int _selectedIndex = 1;
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: Scaffold(
-        backgroundColor: cons.black,
-        body: Center(
+    int selectedTab = 1;
+
+    return Scaffold(
+      backgroundColor: const Color.fromARGB(232, 0, 0, 0),
+      body: SingleChildScrollView(
+        child: isReady ? Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(top: 30.0, left: 15.0, right: 10.0, bottom: 15.0),
+              child: RichText(
+                textAlign: TextAlign.center,
+                text: TextSpan(
+                  style: DefaultTextStyle.of(context).style,
+                  children: const [
+                    TextSpan(
+                      text: 'Your',
+                      style: TextStyle(
+                        fontSize: 35.0,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                        decoration: TextDecoration.none,
+                      ),
+                    ),
+                    TextSpan(
+                      text: 'Stats',
+                      style: TextStyle(
+                        fontSize: 40.0,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF1EF133),
+                        decoration: TextDecoration.none,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Container(
+                      height: 100,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[800], // Dark Grey
+                        borderRadius: const BorderRadius.all(Radius.circular(15.0)),
+                      ),
+                      child: Center(
+                        child: RichText(
+                          textAlign: TextAlign.center,
+                          text: const TextSpan(
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 25.0, // Adjust the font size as needed
+                              decoration: TextDecoration.none, // Remove underline
+                            ),
+                            children: <TextSpan>[
+                              TextSpan(
+                                text: 'Pop ',
+                              ),
+                              TextSpan(
+                                text: '82%',
+                                style: TextStyle(
+                                  color: Color(0xFF1EF133),
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    )
+                  ),
+                  const SizedBox(width: 8.0), // Separation
+                  Expanded(
+                    child: Container(
+                      height: 100,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[800], // Dark Grey
+                        borderRadius: const BorderRadius.all(Radius.circular(15.0)),
+                      ),
+                      child: Center(
+                        child: RichText(
+                          textAlign: TextAlign.center,
+                          text: const TextSpan(
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 26.0, // Adjust the font size as needed
+                              decoration: TextDecoration.none, // Remove underline
+                            ),
+                            children: <TextSpan>[
+                              TextSpan(
+                                text: 'Urban Latino ',
+                              ),
+                              TextSpan(
+                                text: '38%',
+                                style: TextStyle(
+                                  color: Color(0xFF1EF133),
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16.0), // Spacer
+            Container(
+              height: 150,
+              decoration: BoxDecoration(
+                color: Colors.grey[800], // Dark Grey
+                borderRadius: BorderRadius.circular(16.0),
+              ),
+              margin: EdgeInsets.symmetric(horizontal: 16.0),
+              child: Container(
+                height: 100,
+                decoration: BoxDecoration(
+                  color: Colors.grey[800], // Dark Grey
+                  borderRadius: const BorderRadius.all(Radius.circular(15.0)),
+                ),
+                child: Center(
+                  child: RichText(
+                    textAlign: TextAlign.center,
+                    text: const TextSpan(
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 25.0, // Adjust the font size as needed
+                        decoration: TextDecoration.none, // Remove underline
+                      ),
+                      children: <TextSpan>[
+                        TextSpan(
+                          text: '88%',
+                          style: TextStyle(
+                            color: Color(0xFF1EF133),
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        TextSpan(
+                          text: ' of your music is Danceable',
+                        ),
+
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16.0), // Spacer
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              child: Row(
+                children: [
+                  Expanded(
+                      child: Container(
+                        height: 100,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[800], // Dark Grey
+                          borderRadius: const BorderRadius.all(Radius.circular(15.0)),
+                        ),
+                        child: Center(
+                          child: RichText(
+                            textAlign: TextAlign.center,
+                            text: const TextSpan(
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 27.0, // Adjust the font size as needed
+                                decoration: TextDecoration.none, // Remove underline
+                              ),
+                              children: <TextSpan>[
+                                TextSpan(
+                                  text: 'Country ',
+                                ),
+                                TextSpan(
+                                  text: '60%',
+                                  style: TextStyle(
+                                    color: Color(0xFF1EF133),
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      )
+                  ),
+                  const SizedBox(width: 8.0), // Separation
+                  Expanded(
+                    child: Container(
+                      height: 100,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[800], // Dark Grey
+                        borderRadius: const BorderRadius.all(Radius.circular(15.0)),
+                      ),
+                      child: Center(
+                        child: RichText(
+                          textAlign: TextAlign.center,
+                          text: const TextSpan(
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 26.0, // Adjust the font size as needed
+                              decoration: TextDecoration.none, // Remove underline
+                            ),
+                            children: <TextSpan>[
+                              TextSpan(
+                                text: 'American Rap ',
+                              ),
+                              TextSpan(
+                                text: '78%',
+                                style: TextStyle(
+                                  color: Color(0xFF1EF133),
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16.0), // Spacer
+            Container(
+              height: 150,
+              decoration: BoxDecoration(
+                color: Colors.grey[800], // Dark Grey
+                borderRadius: BorderRadius.circular(16.0),
+              ),
+              margin: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Container(
+                height: 100,
+                decoration: BoxDecoration(
+                  color: Colors.grey[800], // Dark Grey
+                  borderRadius: const BorderRadius.all(Radius.circular(15.0)),
+                ),
+                child: Center(
+                  child: RichText(
+                    textAlign: TextAlign.center,
+                    text: const TextSpan(
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 25.0, // Adjust the font size as needed
+                        decoration: TextDecoration.none, // Remove underline
+                      ),
+                      children: <TextSpan>[
+                        TextSpan(
+                          text: '74%',
+                          style: TextStyle(
+                            color: Color(0xFF1EF133),
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        TextSpan(
+                          text: ' of your music is Instrumental',
+                        ),
+
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ) :
+        const Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
-             children: <Widget>[
-              Container(
-                width: size.width * 0.95,
-                height: size.height * 0.08,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: <Widget>[
-                        IconButton(
-                          icon: Icon(Icons.search, color: cons.white),
-                          onPressed: () {
-                            // Acción al hacer clic 
-                          },
-                        ),
-                        Container(
-                          alignment: Alignment.center,
-                width: size.height * 0.3,
-                height: size.height * 0.08,
-               child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                       children:<Widget>[ AutoSizeText(
-                          'Stats',
-              maxLines: 1, // Número máximo de líneas antes de truncar
-              overflow: TextOverflow.ellipsis,
-                          style: TextStyle(color: cons.white, fontSize: 20),
-                        ),
-                    AutoSizeText(
-                      'Past 4 Weeks',
-              maxLines: 1, // Número máximo de líneas antes de truncar
-              overflow: TextOverflow.ellipsis,
-                      style: TextStyle(color: cons.gray,fontSize: 12),
-                    ),
-                        ]
-                ),
-                        ),
-
-                        IconButton(
-                          icon: Icon(Icons.person, color: cons.white),
-                          onPressed: () {
-                            Navigator.push(context, MaterialPageRoute(builder: (context) => const user()));
-                          },
-                        ),
-                      ],
-                    ),
-
-                  ],
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              SizedBox(height: 80.0),
+              Text(
+                'Calculating your taste...',
+                style: TextStyle(
+                  color: Color(0xFF1EF133),
+                  fontSize: 20.0,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
-              Container(
-                width: size.width * 0.95,
-                height: size.height * 0.12,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: <Widget>[
-                    Container(
-                      width: size.width * 0.45,
-                      decoration: BoxDecoration(
-                        color: cons.lightblack,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.center, 
-                        children: <Widget>[
-                          Padding(
-                            padding: const EdgeInsets.only(left: 20.0), 
-                            child: Text(
-                              '1,915',
-                              style: TextStyle(color: cons.green, fontSize: 30, fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                          SizedBox(height: size.height*0.00,),
-                          Padding(
-                            padding: const EdgeInsets.only(left: 20.0), 
-                            child: AutoSizeText(
-                              minFontSize: 6,
-                              maxFontSize: 1000,
-                              'Total tracks streamed',
-                              style: TextStyle(color: cons.white, fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Container(
-                      width: size.width * 0.45,
-                      decoration: BoxDecoration(
-                        color: cons.lightblack,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.center, 
-                        children: <Widget>[
-                          Padding(
-                            padding: const EdgeInsets.only(left: 20.0), 
-                            child: Text(
-                              '112',
-                              style: TextStyle(color: cons.green, fontSize: 30, fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.only(left: 20.0), 
-                            child: AutoSizeText(
-                              minFontSize: 6,
-                              maxFontSize: 1000,
-                              'Total hours streamed',
-                              style: TextStyle(color: cons.white, fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              SizedBox(height: size.height * 0.01),
-              Container(
-                width: size.width * 0.95,
-                height: size.height * 0.35,
-                decoration: BoxDecoration(
-                  color: cons.lightblack,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Padding(
-                      padding: const EdgeInsets.only(left: 20.0, top: 10.0), 
-                      child: Text(
-                        'Genres',
-                        style: TextStyle(color: cons.white, fontSize: 24, fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                    SizedBox(height: 2), 
-                    Padding(
-                      padding: const EdgeInsets.only(left: 20.0), 
-                      child: Text(
-                        'Your top genre is pop, appearing in 69 of your artists',
-                        style: TextStyle(color: cons.gray, fontSize: 20, fontWeight: FontWeight.bold),
-                      ),
-                    ),
-//Poner codigo de la grafica-----------------------------------------------------------------
-                  ],
-                ),
-              ),
-              SizedBox(height: size.height * 0.01),
-              Container(
-                width: size.width * 0.95,
-                height: size.height * 0.20,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: <Widget>[
-                    Container(
-                      width: size.width * 0.40,
-                      decoration: BoxDecoration(
-                        color: cons.lightblack,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.center, 
-                        children: <Widget>[
-                          Padding(
-                            padding: const EdgeInsets.only(left: 20.0), 
-                            child: Text(
-                              '73%',
-                              style: TextStyle(color: cons.green, fontSize: 30, fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                          SizedBox(height: 10,),
-                          Padding(
-                            padding: const EdgeInsets.only(left: 20.0), 
-                            child: AutoSizeText(
-                            minFontSize: 20,
-                            maxFontSize: 40,
-              maxLines: 2, // Número máximo de líneas antes de truncar
-              overflow: TextOverflow.ellipsis,
-                              'Of your tracks are energic',
-                              style: TextStyle(color: cons.white, fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Container(
-                      width: size.width * 0.40,
-                      decoration: BoxDecoration(
-                        color: cons.lightblack,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.center, 
-                        children: <Widget>[
-                          Padding(
-                            padding: const EdgeInsets.only(left: 20.0), 
-                            child: Text(
-                              '64%',
-                              style: TextStyle(color: cons.green, fontSize: 30, fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                          SizedBox(height: 10,),
-                          Padding(
-                            padding: const EdgeInsets.only(left: 20.0), 
-                            child: AutoSizeText(
-                              'Of your tracks are danceable',
-                            minFontSize: 20,
-                            maxFontSize: 40,
-              maxLines: 2, // Número máximo de líneas antes de truncar
-              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(color: cons.white, fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    /*
-                    Container(
-                      width: size.width * 0.40,
-                      decoration: BoxDecoration(
-                        color: cons.lightblack,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.center, 
-                        children: <Widget>[
-                          Padding(
-                            padding: const EdgeInsets.only(left: 20.0), 
-                            child: Text(
-                              '17%',
-                              style: TextStyle(color: cons.green, fontSize: 30, fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                          SizedBox(height: 10,),
-                          Padding(
-                            padding: const EdgeInsets.only(left: 20.0), 
-                            child: Text(
-                              'Of your tracks are lively',
-                              style: TextStyle(color: cons.white, fontSize: 25, fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),*/
-                  ],
-                ),
-              ),
-              SizedBox(height: size.height * 0.01),
-              Container(
-                width: size.width * 0.95,
-                height: size.height * 0.10,
-                alignment: Alignment.center,
-                child: 
-                SingleChildScrollView(scrollDirection: Axis.horizontal,
-                child:                 Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        ElevatedButton(
-                          onPressed: () {
-                            // Acción al hacer clic 
-                          },
-                          style: ElevatedButton.styleFrom(
-                            primary: Colors.transparent, 
-                            elevation: 0, 
-                          ),
-                          child: Text(
-                            '4 Weeks',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                            ),
-                          ),
-                        ),
-                        ElevatedButton(
-                          onPressed: () {
-                            // Acción al hacer clic 
-                          },
-                          style: ElevatedButton.styleFrom(
-                            primary: Colors.transparent, 
-                            elevation: 0, 
-                          ),
-                          child: Text(
-                            '6 Months',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                            ),
-                          ),
-                        ),
-                        ElevatedButton(
-                          onPressed: () {
-                            // Acción al hacer clic 
-                          },
-                          style: ElevatedButton.styleFrom(
-                            primary: Colors.transparent, 
-                            elevation: 0, 
-                          ),
-                          child: Text(
-                            'Lifetime',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                            ),
-                          ),
-                        ),
-                        ElevatedButton.icon(
-                          onPressed: () {
-                            
-                            // Acción al hacer clic
-                          },
-                          style: ElevatedButton.styleFrom(
-                            primary: Colors.transparent, 
-                            elevation: 0, 
-                          ),
-                          icon: Icon(Icons.calendar_today, color: Colors.white),
-                          label: Text(''),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-
-                ),
-              ),
-              SizedBox(height: size.height * 0.01),
+              SizedBox(height: 40.0),
+              CircularProgressIndicator(valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF1EF133)))
             ],
-          ),
-        ),
+          )
+        )
+      ),
       bottomNavigationBar: BottomNavigationBar(
         backgroundColor: const Color.fromARGB(232, 0, 0, 0),
-        selectedItemColor: Color.fromARGB(255, 30, 241, 139),
-        unselectedItemColor: Color.fromARGB(165, 241, 239, 239),
-        
-        items:  <BottomNavigationBarItem>[
+        selectedItemColor: const Color(0xFF1EF133),
+        unselectedItemColor: const Color.fromARGB(165, 241, 239, 239),
+
+        items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
             label: 'Home',
           ),
           BottomNavigationBarItem(
-
             icon: Icon(Icons.equalizer),
             label: 'Stats',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.trending_up),
-            label: 'Top',
-            
+            label: 'Discover',
           ),
-
-          /*BottomNavigationBarItem(
-            backgroundColor: Colors.transparent,
-            icon: Icon(Icons.music_note_sharp),
-            label: 'Identity',
-          ),*/
-          /*BottomNavigationBarItem(
-            backgroundColor: Colors.transparent,
-            icon: Icon(Icons.person),
-            label: 'Profile',
-          ),*/ 
         ],
-        currentIndex: _selectedIndex,
-       
+        currentIndex: selectedTab,
         onTap: (int index) {
           setState(() {
-            _selectedIndex = index;
-            if(_selectedIndex==0){
+            selectedTab = index;
+            if(selectedTab == 2){
+              Navigator.push(context, MaterialPageRoute(builder: (context) => const Recommendations()));
+            } else if(selectedTab == 0){
               Navigator.push(context, MaterialPageRoute(builder: (context) => const Home()));
-            }
-            if(_selectedIndex==1){
-              
-            }
-            if(_selectedIndex==2){
-              Navigator.push(context, MaterialPageRoute(builder: (context) => const Top()));
             }
           });
         },
-      ),
-
       ),
     );
   }

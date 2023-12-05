@@ -31,12 +31,12 @@ class Artist {
   }
 }
 
-Future<List<Artist>> getTopArtists(String? accessToken) async {
+Future<List<Artist>> getTopArtists(String? accessToken, int n) async {
   if (accessToken == null) {
     return Future.error('Access token is null');
   }
 
-  const url = "https://api.spotify.com/v1/me/top/artists?limit=10";
+  final url = "https://api.spotify.com/v1/me/top/artists?limit=$n";
 
   final response = await http.get(
     Uri.parse(url),

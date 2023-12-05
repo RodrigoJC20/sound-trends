@@ -27,6 +27,91 @@ class Track {
   }
 }
 
+class PlayingTrack {
+  final String id;
+  final String name;
+  final String image;
+  final List<String> artists;
+  final bool isPlaying;
+
+  const PlayingTrack({
+    required this.id,
+    required this.name,
+    required this.image,
+    required this.artists,
+    required this.isPlaying,
+  });
+}
+
+Future<List<Track>> getRecommendations(String? accessToken, String artists, String tracks, String genres) async {
+  if (accessToken == null) {
+    return Future.error('Access token is null');
+  }
+
+  final url = "https://api.spotify.com/v1/recommendations?seed_artists=$artists&seed_tracks=$tracks&seed_genres=$genres&limit=20";
+
+  final response = await http.get(
+    Uri.parse(url),
+    headers: <String, String>{
+      'Authorization': 'Bearer $accessToken',
+    },
+  );
+
+  if (response.statusCode == 200) {
+    final Map<String, dynamic> data = json.decode(response.body);
+
+    final List<dynamic> items = data['tracks'];
+
+    List<Track> recentTracks = items.map((item) {
+      return Track(
+        id: item['id'] ?? '',
+        name: item['name'] ?? '',
+        image: item['album']['images'][0]['url'] ?? '',
+        artists: (item['artists'] as List<dynamic>)
+            .map((artist) => artist['name'].toString())
+            .toList(),
+      );
+    }).toList();
+
+    return recentTracks;
+  } else {
+    throw Exception('Failed to load top tracks');
+  }
+}
+
+Future<PlayingTrack> getCurrentPlaying(String? accessToken) async {
+  if (accessToken == null) {
+    return Future.error('Access token is null');
+  }
+
+  const url = "https://api.spotify.com/v1/me/player/currently-playing";
+
+  final response = await http.get(
+    Uri.parse(url),
+    headers: <String, String>{
+      'Authorization': 'Bearer $accessToken',
+    },
+  );
+
+  if (response.statusCode == 200) {
+    final Map<String, dynamic> data = json.decode(response.body);
+
+    final Map<String, dynamic> item = data['item'];
+
+    return PlayingTrack(
+      id: item['id'] ?? '',
+      name: item['name'] ?? '',
+      image: item['album']['images'][0]['url'] ?? '',
+      artists: (item['artists'] as List<dynamic>)
+          .map((artist) => artist['name'].toString())
+          .toList(),
+      isPlaying: data['is_playing'] ?? false,
+    );
+  } else {
+    throw Exception('Failed to load top tracks');
+  }
+}
+
 Future<List<Track>> getRecentlyPlayed(String? accessToken) async {
   if (accessToken == null) {
     return Future.error('Access token is null');
@@ -63,12 +148,12 @@ Future<List<Track>> getRecentlyPlayed(String? accessToken) async {
   }
 }
 
-Future<List<Track>> getTopTracks(String? accessToken) async {
+Future<List<Track>> getTopTracks(String? accessToken, int n) async {
   if (accessToken == null) {
     return Future.error('Access token is null');
   }
 
-  const url = "https://api.spotify.com/v1/me/top/tracks?limit=5";
+  final url = "https://api.spotify.com/v1/me/top/tracks?limit=$n";
 
   final response = await http.get(
     Uri.parse(url),
