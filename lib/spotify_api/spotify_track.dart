@@ -108,7 +108,13 @@ Future<PlayingTrack> getCurrentPlaying(String? accessToken) async {
       isPlaying: data['is_playing'] ?? false,
     );
   } else {
-    throw Exception('Failed to load top tracks');
+    return const PlayingTrack(
+      id: '',
+      name: '',
+      image: '',
+      artists: [],
+      isPlaying: false,
+    );
   }
 }
 

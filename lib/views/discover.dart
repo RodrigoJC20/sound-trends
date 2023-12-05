@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:sound_trends/views/stats.dart';
 
 import '../spotify_api/spotify_artist.dart';
+import '../spotify_api/spotify_auth.dart';
 import '../spotify_api/spotify_track.dart';
 import '../utils/providers.dart';
 import 'home.dart';
@@ -22,23 +23,29 @@ class _RecommendationsState extends State<Recommendations> {
   @override
   void initState() {
     super.initState();
-    final userAuthProvider = Provider.of<UserAuthProvider>(
-        context, listen: false);
-    final String? accessToken = userAuthProvider.getAccessToken();
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
-    getTopArtists(accessToken, 5).then((artists) {
+    final Authentication? userAuth = authProvider.userAuth;
+
+    if (userAuth != null && !isTokenValid(userAuth.requestedAt, userAuth.expiresIn)) {
+      refreshNewToken(userAuth.refreshToken).then((auth) {
+        authProvider.setAuth(auth);
+      });
+    }
+
+    getTopArtists(userAuth?.accessToken, 5).then((artists) {
       setState(() {
         topArtists = artists;
       });
-      getTopTracks(accessToken, 5).then((tracks) {
+      getTopTracks(userAuth?.accessToken, 5).then((tracks) {
         setState(() {
           topTracks = tracks;
         });
-        String artistsString = topArtists[0].id;
-        String tracksString = topTracks[0].id;
+        String artistsString = '${topArtists[0].id},${topArtists[1].id}';
+        String tracksString = '${topTracks[0].id},${topTracks[1].id}';
         String genresString = topArtists[0].genres[0];
 
-        getRecommendations(accessToken, artistsString, tracksString, genresString).then((recomm) {
+        getRecommendations(userAuth?.accessToken, artistsString, tracksString, genresString).then((recomm) {
           setState(() {
             recommendations = recomm;
           });

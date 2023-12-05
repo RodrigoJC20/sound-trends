@@ -21,12 +21,12 @@ class _SpotifyRedirectViewState extends State<SpotifyRedirectView> {
   @override
   void initState() {
     super.initState();
-    final userAuthProvider = Provider.of<UserAuthProvider>(context, listen: false);
+    final userAuthProvider = Provider.of<AuthProvider>(context, listen: false);
 
     String code = extractAuthCode(widget.query);
 
     fetchAccessToken(code).then((userAuth) {
-      userAuthProvider.setUserAuth(userAuth);
+      userAuthProvider.setAuth(userAuth);
       Navigator.push(context, MaterialPageRoute(builder: (context) => const Home()));
     });
   }

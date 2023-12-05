@@ -2,7 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:sound_trends/views/recommendations.dart';
+import 'package:sound_trends/spotify_api/spotify_auth.dart';
+import 'package:sound_trends/views/discover.dart';
 import 'package:sound_trends/views/stats.dart';
 import 'package:sound_trends/spotify_api/spotify_track.dart';
 import '../spotify_api/spotify_artist.dart';
@@ -25,42 +26,52 @@ class _HomeState extends State<Home> {
   void initState() {
     super.initState();
     final topDataProvider = Provider.of<TopDataProvider>(context, listen: false);
-    final userAuthProvider = Provider.of<UserAuthProvider>(context, listen: false);
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
-    topArtists = topDataProvider.topArtists;
-    topTracks = topDataProvider.topTracks;
+    topArtists = topDataProvider.topArtists.take(10).toList();
+    topTracks = topDataProvider.topTracks.take(5).toList();
 
-    final String? accessToken = userAuthProvider.getAccessToken();
+    final Authentication? userAuth = authProvider.userAuth;
+    
+    if (userAuth != null && !isTokenValid(userAuth.requestedAt, userAuth.expiresIn)) {
+      refreshNewToken(userAuth.refreshToken).then((auth) {
+        authProvider.setAuth(auth);
+      });
+    }
 
-    if (topDataProvider.topArtists.isEmpty) {
-      getTopArtists(accessToken, 8).then((artists) {
+    if (topArtists.isEmpty) {
+      getTopArtists(userAuth?.accessToken, 30).then((artists) {
         topDataProvider.updateTopArtists(artists);
         setState(() {
-          topArtists = artists;
+          topArtists = artists.take(10).toList();
         });
       });
     }
-    if (topDataProvider.topTracks.isEmpty) {
-      getTopTracks(accessToken, 5).then((tracks) {
+    if (topTracks.isEmpty) {
+      getTopTracks(userAuth?.accessToken, 30).then((tracks) {
         topDataProvider.updateTopTracks(tracks);
         setState(() {
-          topTracks = tracks;
+          topTracks = tracks.take(5).toList();
         });
       });
     }
 
-    getRecentlyPlayed(accessToken).then((tracks) {
+    getRecentlyPlayed(userAuth?.accessToken).then((tracks) {
       setState(() {
         recentlyPlayed = tracks;
       });
     });
 
     void updateCurrentlyPlaying() async {
-      final trackResult = await getCurrentPlaying(accessToken);
+      final trackResult = await getCurrentPlaying(userAuth?.accessToken);
       PlayingTrack newTrack = trackResult;
       setState(() {
         track = newTrack;
-        if (track.isPlaying) debugPrint(track.name);
+        if (track.isPlaying) {
+          debugPrint(track.name);
+        } else {
+          debugPrint("Not playing a song");
+        }
       });
     }
 
@@ -275,15 +286,5 @@ class _HomeState extends State<Home> {
         },
       ),
     );
-
-    List<SpotifyTrackCard> buildRecentlyPlayedCards(List<Track> recentlyPlayed) {
-      return recentlyPlayed.map((track) {
-        return SpotifyTrackCard(
-          songName: track.name,
-          authors: track.artists,
-          imageUrl: track.image,
-        );
-      }).toList();
-    }
   }
 }

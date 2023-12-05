@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:sound_trends/views/recommendations.dart';
+import 'package:sound_trends/views/discover.dart';
 import '../spotify_api/spotify_artist.dart';
+import '../spotify_api/spotify_auth.dart';
 import '../spotify_api/spotify_track.dart';
 import '../utils/providers.dart';
 import 'home.dart';
@@ -21,14 +22,21 @@ class _StatsState extends State<Stats> {
   @override
   void initState() {
     super.initState();
-    final userAuthProvider = Provider.of<UserAuthProvider>(context, listen: false);
-    final String? accessToken = userAuthProvider.getAccessToken();
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
 
-    getTopArtists(accessToken, 30).then((artists) {
+    final Authentication? userAuth = authProvider.userAuth;
+
+    if (userAuth != null && !isTokenValid(userAuth.requestedAt, userAuth.expiresIn)) {
+      refreshNewToken(userAuth.refreshToken).then((auth) {
+        authProvider.setAuth(auth);
+      });
+    }
+
+    getTopArtists(userAuth?.accessToken, 30).then((artists) {
       setState(() {
         topArtists = artists;
       });
-      getTopTracks(accessToken, 30).then((tracks) {
+      getTopTracks(userAuth?.accessToken, 30).then((tracks) {
         setState(() {
           topTracks = tracks;
           isReady = true;

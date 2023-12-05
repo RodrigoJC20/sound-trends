@@ -3,12 +3,12 @@ import '../spotify_api/spotify_artist.dart';
 import '../spotify_api/spotify_auth.dart';
 import '../spotify_api/spotify_track.dart';
 
-class UserAuthProvider extends ChangeNotifier {
-  UserAuth? _userAuth;
+class AuthProvider extends ChangeNotifier {
+  Authentication? _userAuth;
 
-  UserAuth? get userAuth => _userAuth;
+  Authentication? get userAuth => _userAuth;
 
-  void setUserAuth(UserAuth userAuth) {
+  void setAuth(Authentication userAuth) {
     _userAuth = userAuth;
     notifyListeners();
   }
@@ -34,4 +34,8 @@ class TopDataProvider extends ChangeNotifier {
     _topTracks = tracks;
     notifyListeners();
   }
+}
+
+class UserInfoProvider extends ChangeNotifier {
+
 }

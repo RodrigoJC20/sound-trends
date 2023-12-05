@@ -1,11 +1,12 @@
 import 'dart:convert';
 import 'dart:math';
+import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 import 'package:pkce/pkce.dart';
 
-class UserAuth {
+class Authentication {
   final String accessToken;
   final String tokenType;
   final String scope;
@@ -13,7 +14,7 @@ class UserAuth {
   final String refreshToken;
   final DateTime requestedAt;
 
-  const UserAuth({
+  const Authentication({
     required this.accessToken,
     required this.tokenType,
     required this.scope,
@@ -22,7 +23,7 @@ class UserAuth {
     required this.requestedAt,
   });
 
-  factory UserAuth.fromJson(Map<String, dynamic> json) {
+  factory Authentication.fromJson(Map<String, dynamic> json) {
     return switch (json) {
       {
       'access_token': String accessToken,
@@ -30,7 +31,7 @@ class UserAuth {
       'scope': String scope,
       'expires_in': int expiresIn,
       'refresh_token': String refreshToken,
-      } => UserAuth(
+      } => Authentication(
         accessToken: accessToken,
         tokenType: tokenType,
         scope: scope,
@@ -85,11 +86,11 @@ Future<void> authUser() async {
   }
 }
 
-Future<UserAuth> fetchAccessToken(code) async {
+Future<Authentication> fetchAccessToken(code) async {
   final preferences = await SharedPreferences.getInstance();
   final String? codeVerifier = preferences.getString('codeVerifier');
 
-  const String clientId = '42878b630fd04e51873054b6ac37e01b';
+  const String clientId = 'client-id';
   const String redirectUri = 'com.example.soundtrends://login/oauth';
 
   if (codeVerifier != null) {
@@ -108,7 +109,7 @@ Future<UserAuth> fetchAccessToken(code) async {
     );
 
     final responseJson = jsonDecode(response.body) as Map<String, dynamic>;
-    final userAuth = UserAuth.fromJson(responseJson);
+    final userAuth = Authentication.fromJson(responseJson);
 
     preferences.setString('accessToken', userAuth.accessToken);
     preferences.setString('scope', userAuth.scope);
@@ -122,7 +123,7 @@ Future<UserAuth> fetchAccessToken(code) async {
   }
 }
 
-Future<UserAuth?> loadUserAuth() async {
+Future<Authentication?> loadUserAuth() async {
   final preferences = await SharedPreferences.getInstance();
 
   final String? accessToken = preferences.getString('accessToken');
@@ -132,27 +133,27 @@ Future<UserAuth?> loadUserAuth() async {
   final int? expireTime = preferences.getInt('expiresIn');
 
   if (accessToken != null && requestedAt != null && expireTime != null && scope != null && refreshToken != null) {
-    final DateTime storedTokenCreatedAt = DateTime.parse(requestedAt);
+    final DateTime storedTokenRequestedAt = DateTime.parse(requestedAt);
 
-    if (!isTokenValid(storedTokenCreatedAt, expireTime)) {
+    if (!isTokenValid(storedTokenRequestedAt, expireTime)) {
       return refreshNewToken(refreshToken);
     }
 
-    return UserAuth(
+    return Authentication(
         accessToken: accessToken,
         tokenType: 'Bearer',
         scope: scope,
         expiresIn: expireTime,
         refreshToken: refreshToken,
-        requestedAt: storedTokenCreatedAt
+        requestedAt: storedTokenRequestedAt
     );
   }
 
   return null;
 }
 
-// TODO: Refresh Access Token
-Future<UserAuth> refreshNewToken(refreshToken) async {
+Future<Authentication> refreshNewToken(refreshToken) async {
+  debugPrint("Refreshing token");
   final preferences = await SharedPreferences.getInstance();
 
   const String clientId = 'client-id';
@@ -170,7 +171,7 @@ Future<UserAuth> refreshNewToken(refreshToken) async {
   );
 
   final responseJson = jsonDecode(response.body) as Map<String, dynamic>;
-  final userAuth = UserAuth.fromJson(responseJson);
+  final userAuth = Authentication.fromJson(responseJson);
 
   preferences.setString('accessToken', userAuth.accessToken);
   preferences.setString('scope', userAuth.scope);

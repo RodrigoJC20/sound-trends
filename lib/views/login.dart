@@ -107,10 +107,16 @@ class _LoginState extends State<Login> {
       isLoading = true;
     });
 
-    final userAuthProvider = Provider.of<UserAuthProvider>(context, listen: false);
-    final storedUserAuth = userAuthProvider.userAuth;
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final storedUserAuth = authProvider.userAuth;
 
     if (storedUserAuth != null) {
+      if (!isTokenValid(storedUserAuth.requestedAt, storedUserAuth.expiresIn)) {
+        refreshNewToken(storedUserAuth.refreshToken).then((auth) {
+          authProvider.setAuth(auth);
+        });
+      }
+
       setState(() {
         isLoading = false;
       });
@@ -119,7 +125,7 @@ class _LoginState extends State<Login> {
     } else {
       loadUserAuth().then((userAuth) async {
         if (userAuth != null) {
-          userAuthProvider.setUserAuth(userAuth);
+          authProvider.setAuth(userAuth);
           Future.delayed(const Duration(milliseconds: 500), () {
             setState(() {
               isLoading = false;
