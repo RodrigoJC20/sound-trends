@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:sound_trends/views/stats.dart';
 
-import '../spotify_api/spotify_artist.dart';
-import '../spotify_api/spotify_auth.dart';
-import '../spotify_api/spotify_track.dart';
+import '../spotify_api/artist.dart';
+import '../spotify_api/auth.dart';
+import '../spotify_api/track.dart';
 import '../utils/providers.dart';
 import 'home.dart';
 
@@ -149,7 +149,7 @@ class _RecommendationsState extends State<Recommendations> {
           setState(() {
             selectedTab = index;
             if(selectedTab == 1){
-              Navigator.push(context, MaterialPageRoute(builder: (context) => const Stats()));
+              Navigator.push(context, MaterialPageRoute(builder: (context) => const UserStats()));
             } else if(selectedTab == 0){
               Navigator.push(context, MaterialPageRoute(builder: (context) => const Home()));
             }

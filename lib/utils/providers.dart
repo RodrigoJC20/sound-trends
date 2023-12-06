@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import '../spotify_api/spotify_artist.dart';
-import '../spotify_api/spotify_auth.dart';
-import '../spotify_api/spotify_track.dart';
+import '../spotify_api/artist.dart';
+import '../spotify_api/auth.dart';
+import '../spotify_api/stats.dart';
+import '../spotify_api/track.dart';
 
 class AuthProvider extends ChangeNotifier {
   Authentication? _userAuth;
@@ -33,6 +34,19 @@ class TopDataProvider extends ChangeNotifier {
   void updateTopTracks(List<Track> tracks) {
     _topTracks = tracks;
     notifyListeners();
+  }
+}
+
+class StatsProvider extends ChangeNotifier {
+  Stats? _userStats;
+
+  void setStats(Stats? userStats) {
+    _userStats = userStats;
+    notifyListeners();
+  }
+
+  Stats? getUserStats() {
+    return _userStats;
   }
 }
 

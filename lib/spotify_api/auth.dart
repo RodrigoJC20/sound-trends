@@ -58,7 +58,7 @@ Future<void> authUser() async {
   final codeVerifier = pkcePair.codeVerifier;
   final codeChallenge = pkcePair.codeChallenge;
 
-  const String clientId = '42878b630fd04e51873054b6ac37e01b';
+  const String clientId = 'client-id';
   const String redirectUri = 'com.example.soundtrends://login/oauth';
 
   const String scope = 'user-top-read user-read-recently-played user-read-private user-read-currently-playing';
@@ -108,16 +108,21 @@ Future<Authentication> fetchAccessToken(code) async {
       },
     );
 
-    final responseJson = jsonDecode(response.body) as Map<String, dynamic>;
-    final userAuth = Authentication.fromJson(responseJson);
+    if (response.statusCode == 200) {
+      final responseJson = jsonDecode(response.body) as Map<String, dynamic>;
+      final userAuth = Authentication.fromJson(responseJson);
 
-    preferences.setString('accessToken', userAuth.accessToken);
-    preferences.setString('scope', userAuth.scope);
-    preferences.setInt('expiresIn', userAuth.expiresIn);
-    preferences.setString('refreshToken', userAuth.refreshToken);
-    preferences.setString('requestedAt', userAuth.requestedAt.toIso8601String());
+      preferences.setString('accessToken', userAuth.accessToken);
+      preferences.setString('scope', userAuth.scope);
+      preferences.setInt('expiresIn', userAuth.expiresIn);
+      preferences.setString('refreshToken', userAuth.refreshToken);
+      preferences.setString('requestedAt', userAuth.requestedAt.toIso8601String());
 
-    return userAuth;
+      return userAuth;
+    } else {
+      debugPrint(response.body);
+      return Future.error('Unable to fetch access token.');
+    }
   } else {
     return Future.error('Code verifier is null. Unable to fetch access token.');
   }

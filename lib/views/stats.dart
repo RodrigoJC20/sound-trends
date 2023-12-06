@@ -1,30 +1,40 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:sound_trends/spotify_api/stats.dart';
 import 'package:sound_trends/views/discover.dart';
-import '../spotify_api/spotify_artist.dart';
-import '../spotify_api/spotify_auth.dart';
-import '../spotify_api/spotify_track.dart';
+import '../spotify_api/artist.dart';
+import '../spotify_api/auth.dart';
+import '../spotify_api/track.dart';
 import '../utils/providers.dart';
 import 'home.dart';
 
-class Stats extends StatefulWidget {
-  const Stats({super.key});
+
+
+class UserStats extends StatefulWidget {
+  const UserStats({super.key});
 
   @override
-  State<Stats> createState() => _StatsState();
+  State<UserStats> createState() => _UserStatsState();
 }
 
-class _StatsState extends State<Stats> {
+class _UserStatsState extends State<UserStats> {
   List<Artist> topArtists = [];
   List<Track> topTracks = [];
+  Stats? userStats;
   bool isReady = false;
 
   @override
   void initState() {
     super.initState();
+    final topDataProvider = Provider.of<TopDataProvider>(context, listen: false);
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final userStatsProvider = Provider.of<StatsProvider>(context, listen: false);
 
     final Authentication? userAuth = authProvider.userAuth;
+
+    topArtists = topDataProvider.topArtists;
+    topTracks = topDataProvider.topTracks;
+    userStats = userStatsProvider.getUserStats();
 
     if (userAuth != null && !isTokenValid(userAuth.requestedAt, userAuth.expiresIn)) {
       refreshNewToken(userAuth.refreshToken).then((auth) {
@@ -32,17 +42,72 @@ class _StatsState extends State<Stats> {
       });
     }
 
-    getTopArtists(userAuth?.accessToken, 30).then((artists) {
-      setState(() {
-        topArtists = artists;
+    if (topArtists.isEmpty) {
+      getTopArtists(userAuth?.accessToken, 30).then((artists) {
+        topDataProvider.updateTopArtists(artists);
+        setState(() {
+          topArtists = artists;
+        });
       });
+    }
+    if (topTracks.isEmpty) {
       getTopTracks(userAuth?.accessToken, 30).then((tracks) {
+        topDataProvider.updateTopTracks(tracks);
         setState(() {
           topTracks = tracks;
+        });
+      });
+    }
+
+    if (userStats == null) {
+      String trackIds = topTracks.map((track) => track.id).join(',');
+      getStats(userAuth?.accessToken, trackIds).then((stats) {
+
+        Map<String, int> genreFrequency = {};
+
+        for (var artist in topArtists) {
+          for (var genre in artist.genres) {
+            genreFrequency[genre] = (genreFrequency[genre] ?? 0) + 1;
+          }
+        }
+
+        List<MapEntry<String, int>> sortedGenres = genreFrequency.entries.toList()
+          ..sort((a, b) => b.value.compareTo(a.value));
+
+        List<MapEntry<String, int>> top4Genres = sortedGenres.take(4).toList();
+
+        int totalArtists = topArtists.length;
+        Map<String, double> popularity = {};
+
+        for (var entry in top4Genres) {
+          var genre = entry.key;
+          var frequency = entry.value;
+          var percentage = (frequency.toDouble() / totalArtists.toDouble()) * 100.0;
+          popularity[genre] = percentage;
+        }
+
+        List<Genre> topGenres = [];
+
+        popularity.forEach((genre, percentage) {
+          topGenres.add(Genre(name: genre, popularity: percentage));
+        });
+
+        userStats = Stats(
+          danceable: stats.danceable * 100,
+          energy: stats.energy * 100,
+          topGenres: topGenres,
+        );
+
+        setState(() {
+          userStatsProvider.setStats(userStats);
           isReady = true;
         });
       });
-    });
+    } else {
+      setState(() {
+        isReady = true;
+      });
+    }
   }
 
   @override
@@ -52,7 +117,7 @@ class _StatsState extends State<Stats> {
     return Scaffold(
       backgroundColor: const Color.fromARGB(232, 0, 0, 0),
       body: SingleChildScrollView(
-        child: isReady ? Column(
+        child: isReady && userStats != null ? Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Padding(
@@ -63,7 +128,7 @@ class _StatsState extends State<Stats> {
                   style: DefaultTextStyle.of(context).style,
                   children: const [
                     TextSpan(
-                      text: 'Your',
+                      text: 'Your ',
                       style: TextStyle(
                         fontSize: 35.0,
                         fontWeight: FontWeight.bold,
@@ -98,8 +163,8 @@ class _StatsState extends State<Stats> {
                       child: Center(
                         child: RichText(
                           textAlign: TextAlign.center,
-                          text: const TextSpan(
-                            style: TextStyle(
+                          text: TextSpan(
+                            style: const TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.bold,
                               fontSize: 25.0, // Adjust the font size as needed
@@ -107,11 +172,11 @@ class _StatsState extends State<Stats> {
                             ),
                             children: <TextSpan>[
                               TextSpan(
-                                text: 'Pop ',
+                                text: '${userStats!.topGenres?[0].name} ',
                               ),
                               TextSpan(
-                                text: '82%',
-                                style: TextStyle(
+                                text: '${userStats!.topGenres?[0].popularity.toStringAsFixed(0)}%',
+                                style: const TextStyle(
                                   color: Color(0xFF1EF133),
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -133,8 +198,8 @@ class _StatsState extends State<Stats> {
                       child: Center(
                         child: RichText(
                           textAlign: TextAlign.center,
-                          text: const TextSpan(
-                            style: TextStyle(
+                          text: TextSpan(
+                            style: const TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.bold,
                               fontSize: 26.0, // Adjust the font size as needed
@@ -142,130 +207,11 @@ class _StatsState extends State<Stats> {
                             ),
                             children: <TextSpan>[
                               TextSpan(
-                                text: 'Urban Latino ',
+                                text: '${userStats!.topGenres?[1].name} ',
                               ),
                               TextSpan(
-                                text: '38%',
-                                style: TextStyle(
-                                  color: Color(0xFF1EF133),
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 16.0), // Spacer
-            Container(
-              height: 150,
-              decoration: BoxDecoration(
-                color: Colors.grey[800], // Dark Grey
-                borderRadius: BorderRadius.circular(16.0),
-              ),
-              margin: EdgeInsets.symmetric(horizontal: 16.0),
-              child: Container(
-                height: 100,
-                decoration: BoxDecoration(
-                  color: Colors.grey[800], // Dark Grey
-                  borderRadius: const BorderRadius.all(Radius.circular(15.0)),
-                ),
-                child: Center(
-                  child: RichText(
-                    textAlign: TextAlign.center,
-                    text: const TextSpan(
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 25.0, // Adjust the font size as needed
-                        decoration: TextDecoration.none, // Remove underline
-                      ),
-                      children: <TextSpan>[
-                        TextSpan(
-                          text: '88%',
-                          style: TextStyle(
-                            color: Color(0xFF1EF133),
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        TextSpan(
-                          text: ' of your music is Danceable',
-                        ),
-
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 16.0), // Spacer
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-              child: Row(
-                children: [
-                  Expanded(
-                      child: Container(
-                        height: 100,
-                        decoration: BoxDecoration(
-                          color: Colors.grey[800], // Dark Grey
-                          borderRadius: const BorderRadius.all(Radius.circular(15.0)),
-                        ),
-                        child: Center(
-                          child: RichText(
-                            textAlign: TextAlign.center,
-                            text: const TextSpan(
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 27.0, // Adjust the font size as needed
-                                decoration: TextDecoration.none, // Remove underline
-                              ),
-                              children: <TextSpan>[
-                                TextSpan(
-                                  text: 'Country ',
-                                ),
-                                TextSpan(
-                                  text: '60%',
-                                  style: TextStyle(
-                                    color: Color(0xFF1EF133),
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      )
-                  ),
-                  const SizedBox(width: 8.0), // Separation
-                  Expanded(
-                    child: Container(
-                      height: 100,
-                      decoration: BoxDecoration(
-                        color: Colors.grey[800], // Dark Grey
-                        borderRadius: const BorderRadius.all(Radius.circular(15.0)),
-                      ),
-                      child: Center(
-                        child: RichText(
-                          textAlign: TextAlign.center,
-                          text: const TextSpan(
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 26.0, // Adjust the font size as needed
-                              decoration: TextDecoration.none, // Remove underline
-                            ),
-                            children: <TextSpan>[
-                              TextSpan(
-                                text: 'American Rap ',
-                              ),
-                              TextSpan(
-                                text: '78%',
-                                style: TextStyle(
+                                text: '${userStats!.topGenres?[1].popularity.toStringAsFixed(0)}%',
+                                style: const TextStyle(
                                   color: Color(0xFF1EF133),
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -296,8 +242,8 @@ class _StatsState extends State<Stats> {
                 child: Center(
                   child: RichText(
                     textAlign: TextAlign.center,
-                    text: const TextSpan(
-                      style: TextStyle(
+                    text: TextSpan(
+                      style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
                         fontSize: 25.0, // Adjust the font size as needed
@@ -305,14 +251,133 @@ class _StatsState extends State<Stats> {
                       ),
                       children: <TextSpan>[
                         TextSpan(
-                          text: '74%',
-                          style: TextStyle(
+                          text: '${userStats!.danceable.toStringAsFixed(1)}%',
+                          style: const TextStyle(
                             color: Color(0xFF1EF133),
                             fontWeight: FontWeight.bold,
                           ),
                         ),
+                        const TextSpan(
+                          text: ' of your music is Danceable',
+                        ),
+
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16.0), // Spacer
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              child: Row(
+                children: [
+                  Expanded(
+                      child: Container(
+                        height: 100,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[800], // Dark Grey
+                          borderRadius: const BorderRadius.all(Radius.circular(15.0)),
+                        ),
+                        child: Center(
+                          child: RichText(
+                            textAlign: TextAlign.center,
+                            text: TextSpan(
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 27.0, // Adjust the font size as needed
+                                decoration: TextDecoration.none, // Remove underline
+                              ),
+                              children: <TextSpan>[
+                                TextSpan(
+                                  text: '${userStats!.topGenres?[2].name} ',
+                                ),
+                                TextSpan(
+                                  text: '${userStats!.topGenres?[2].popularity.toStringAsFixed(0)}%',
+                                  style: const TextStyle(
+                                    color: Color(0xFF1EF133),
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      )
+                  ),
+                  const SizedBox(width: 8.0), // Separation
+                  Expanded(
+                    child: Container(
+                      height: 100,
+                      decoration: BoxDecoration(
+                        color: Colors.grey[800], // Dark Grey
+                        borderRadius: const BorderRadius.all(Radius.circular(15.0)),
+                      ),
+                      child: Center(
+                        child: RichText(
+                          textAlign: TextAlign.center,
+                          text: TextSpan(
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 26.0, // Adjust the font size as needed
+                              decoration: TextDecoration.none, // Remove underline
+                            ),
+                            children: <TextSpan>[
+                              TextSpan(
+                                text: '${userStats!.topGenres?[3].name} ',
+                              ),
+                              TextSpan(
+                                text: '${userStats!.topGenres?[3].popularity.toStringAsFixed(0)}%',
+                                style: const TextStyle(
+                                  color: Color(0xFF1EF133),
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16.0), // Spacer
+            Container(
+              height: 150,
+              decoration: BoxDecoration(
+                color: Colors.grey[800], // Dark Grey
+                borderRadius: BorderRadius.circular(16.0),
+              ),
+              margin: const EdgeInsets.symmetric(horizontal: 16.0),
+              child: Container(
+                height: 100,
+                decoration: BoxDecoration(
+                  color: Colors.grey[800], // Dark Grey
+                  borderRadius: const BorderRadius.all(Radius.circular(15.0)),
+                ),
+                child: Center(
+                  child: RichText(
+                    textAlign: TextAlign.center,
+                    text:  TextSpan(
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 25.0, // Adjust the font size as needed
+                        decoration: TextDecoration.none, // Remove underline
+                      ),
+                      children: <TextSpan>[
                         TextSpan(
-                          text: ' of your music is Instrumental',
+                          text: '${userStats!.energy.toStringAsFixed(1)}%',
+                          style: const TextStyle(
+                            color: Color(0xFF1EF133),
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const TextSpan(
+                          text: ' of your music is Energetic',
                         ),
 
                       ],

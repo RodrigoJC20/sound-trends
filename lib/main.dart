@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:sound_trends/utils/providers.dart';
 import 'package:sound_trends/views/login.dart';
 import 'package:provider/provider.dart';
-import 'package:sound_trends/spotify_api/spotify_redirect.dart';
+import 'package:sound_trends/spotify_api/oauth_redirect.dart';
 
 void main() {
   runApp(
@@ -11,6 +11,7 @@ void main() {
       providers: [
         ChangeNotifierProvider(create: (context) => AuthProvider()),
         ChangeNotifierProvider(create: (context) => TopDataProvider()),
+        ChangeNotifierProvider(create: (context) => StatsProvider()),
       ],
       child: const MyApp(),
     ),

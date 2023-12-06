@@ -2,11 +2,11 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:sound_trends/spotify_api/spotify_auth.dart';
+import 'package:sound_trends/spotify_api/auth.dart';
 import 'package:sound_trends/views/discover.dart';
 import 'package:sound_trends/views/stats.dart';
-import 'package:sound_trends/spotify_api/spotify_track.dart';
-import '../spotify_api/spotify_artist.dart';
+import 'package:sound_trends/spotify_api/track.dart';
+import '../spotify_api/artist.dart';
 import '../utils/providers.dart';
 
 class Home extends StatefulWidget {
@@ -32,18 +32,13 @@ class _HomeState extends State<Home> {
     topTracks = topDataProvider.topTracks.take(5).toList();
 
     final Authentication? userAuth = authProvider.userAuth;
-
-    if (userAuth != null && isTokenValid(userAuth.requestedAt, userAuth.expiresIn)) {
-      debugPrint("I am valid bro :)");
-      debugPrint("Requested at ${userAuth.requestedAt}");
-    }
     
     if (userAuth != null && !isTokenValid(userAuth.requestedAt, userAuth.expiresIn)) {
       debugPrint("I am not valid bro :(");
       debugPrint("Requested at ${userAuth.requestedAt}");
-      // refreshNewToken(userAuth.refreshToken).then((auth) {
-      //   authProvider.setAuth(auth);
-      // });
+      refreshNewToken(userAuth.refreshToken).then((auth) {
+        authProvider.setAuth(auth);
+      });
     }
 
     if (topArtists.isEmpty) {
@@ -285,7 +280,7 @@ class _HomeState extends State<Home> {
           setState(() {
             selectedTab = index;
             if(selectedTab == 1){
-              Navigator.push(context, MaterialPageRoute(builder: (context) => const Stats()));
+              Navigator.push(context, MaterialPageRoute(builder: (context) => const UserStats()));
             } else if(selectedTab == 2){
               Navigator.push(context, MaterialPageRoute(builder: (context) => const Recommendations()));
             }

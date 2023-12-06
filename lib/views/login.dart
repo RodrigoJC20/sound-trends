@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:sound_trends/spotify_api/spotify_auth.dart';
+import 'package:sound_trends/spotify_api/auth.dart';
 import 'package:sound_trends/views/home.dart';
 import 'dart:async';
 import '../utils/providers.dart';
