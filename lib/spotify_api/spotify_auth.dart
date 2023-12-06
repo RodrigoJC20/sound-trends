@@ -176,7 +176,7 @@ Future<Authentication> refreshNewToken(refreshToken) async {
   preferences.setString('accessToken', userAuth.accessToken);
   preferences.setString('scope', userAuth.scope);
   preferences.setInt('expiresIn', userAuth.expiresIn);
-  preferences.setString('accessToken', userAuth.refreshToken);
+  preferences.setString('refreshToken', userAuth.refreshToken);
   preferences.setString('requestedAt', userAuth.requestedAt.toIso8601String());
 
   return userAuth;

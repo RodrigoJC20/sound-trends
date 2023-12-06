@@ -168,6 +168,8 @@ Future<List<Track>> getTopTracks(String? accessToken, int n) async {
     },
   );
 
+  debugPrint(response.body);
+
   if (response.statusCode == 200) {
     final Map<String, dynamic> data = json.decode(response.body);
 

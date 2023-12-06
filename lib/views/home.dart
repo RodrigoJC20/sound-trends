@@ -32,11 +32,18 @@ class _HomeState extends State<Home> {
     topTracks = topDataProvider.topTracks.take(5).toList();
 
     final Authentication? userAuth = authProvider.userAuth;
+
+    if (userAuth != null && isTokenValid(userAuth.requestedAt, userAuth.expiresIn)) {
+      debugPrint("I am valid bro :)");
+      debugPrint("Requested at ${userAuth.requestedAt}");
+    }
     
     if (userAuth != null && !isTokenValid(userAuth.requestedAt, userAuth.expiresIn)) {
-      refreshNewToken(userAuth.refreshToken).then((auth) {
-        authProvider.setAuth(auth);
-      });
+      debugPrint("I am not valid bro :(");
+      debugPrint("Requested at ${userAuth.requestedAt}");
+      // refreshNewToken(userAuth.refreshToken).then((auth) {
+      //   authProvider.setAuth(auth);
+      // });
     }
 
     if (topArtists.isEmpty) {
@@ -75,7 +82,7 @@ class _HomeState extends State<Home> {
       });
     }
 
-    Timer.periodic(const Duration(seconds: 1), (timer) {
+    Timer.periodic(const Duration(seconds: 10), (timer) {
       updateCurrentlyPlaying();
     });
 
